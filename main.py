@@ -1,3 +1,4 @@
+import os
 import sys
 
 import layoutObfuscation
@@ -6,18 +7,29 @@ import controlflowObfuscation
 
 def main():
     print("Solidity obfuscation starts")
+    
+    solContent = ""
+    #input = sys.argv[1]
+    input = "FirstApp.sol"
+    #output = sys.argv[2]
+    output = "output.sol"
+    
+    if not os.path.exists(input):
+        raise FileNotFoundError(f"File '{input}' does not exist.")
     #print("open {sys.argv[1]}")
-    solContect = ""
     #with open(sys.argv[1], "r", encoding = "utf-8") as f:
-    with open("FirstApp.sol", "r", encoding = "utf-8") as f:
+    with open(input, "r", encoding = "utf-8") as f:
         solContent = f.read()
-    layoutObfuscation.layoutObfuscation(solContent)
-    dataflowObfuscation.dataflowObfuscation(solContent)
-    controlflowObfuscation.controlflowObfuscation(solContect)
+    
+    #dataflowObfuscation.dataflowObfuscation(solContent)
+    #controlflowObfuscation.controlflowObfuscation(solContect)
+    #layoutObfuscation.layoutObfuscation(solContent)
 
-def getContent(self, _filepath):
-	with open(_filepath, "r", encoding = "utf-8") as f:
-		return f.read()
-	return str()
+    try:
+        with open(output, 'w', encoding='utf-8') as file:
+            file.write(solContent)
+        print(f"File saved successfully: {output}")
+    except Exception as e:
+        raise IOError(f"Failed to save file at {output}: {e}")
 
 main()

@@ -21,9 +21,12 @@ def main():
     with open(input, "r", encoding = "utf-8") as f:
         solContent = f.read()
     
-    #dataflowObfuscation.dataflowObfuscation(solContent)
-    #controlflowObfuscation.controlflowObfuscation(solContect)
-    #layoutObfuscation.layoutObfuscation(solContent)
+    #dfo = dataflowObfuscation.dataflowObfuscation(solContent)
+    #solContent = dfo.run()
+    #cfo = controlflowObfuscation.controlflowObfuscation(solContent)
+    #solContent = cfo.run()
+    #lo = layoutObfuscation.layoutObfuscation(solContent)
+    #solContent = lo.run()
 
     try:
         with open(output, 'w', encoding='utf-8') as file:

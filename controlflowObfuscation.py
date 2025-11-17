@@ -1,4 +1,4 @@
-from ControlflowObfuscator import instructionInsert
+from ControlflowObfuscator import instructionCFO
 
 class controlflowObfuscation:
 
@@ -8,7 +8,9 @@ class controlflowObfuscation:
 	
 	def run(self):
 		print("Start control flow confusion:")
-		self.instructionInsert = instructionInsert.instructionInsert(self.solContent)
-		self.solContent = self.instructionInsert.doInsert()
+		self.instructionCFO = instructionCFO.instructionCFO()
+		self.solContent = self.instructionCFO.doInstructionInsert(self.solContent)
+		self.solContent = self.instructionCFO.doInstructionReplace(self.solContent)
+
 		print("Complete control flow confusion.")
 		return self.solContent

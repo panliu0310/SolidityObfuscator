@@ -10,9 +10,11 @@ def main():
     
     solContent = ""
     #input = sys.argv[1]
-    input = "FirstApp.sol"
+    #input = ".\\testCase\\FirstApp.sol"
+    #input = ".\\testCase\\PrimitiveDataType.sol"
+    input = ".\\testCase\\Variable.sol"
     #output = sys.argv[2]
-    output = "output.sol"
+    output = ".\\output\\output.sol"
     
     if not os.path.exists(input):
         raise FileNotFoundError(f"File '{input}' does not exist.")

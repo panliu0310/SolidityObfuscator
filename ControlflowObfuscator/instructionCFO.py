@@ -8,7 +8,7 @@ class instructionCFO:
         # - (.*?);: Matches the value up to the semicolon (non-greedy)
 		self.insertPattern = r'([\w.]+)\s*=\s*(.*?);'
 		#self.pattern = r'(\w+\s*=\s*([^;]+));'
-		self.replacePattern = r'(.*?)\s*^\s*(.*?);'
+		self.replacePattern = r'([\w.]+)\s*\^\s*([\w.]+)'
 	
 	def doInstructionInsert(self, _solContent):
 		nowContent = _solContent

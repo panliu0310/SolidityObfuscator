@@ -1,5 +1,6 @@
 from typing import List
 
+
 class controlflowObfuscation:
     """ Pipeline:
         remove_comments -> insert_opaque_true_helper -> insert_opaque_true_in_if

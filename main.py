@@ -1,40 +1,247 @@
 import os
-import sys
+import tkinter as tk
+from tkinter import filedialog, messagebox
 
 import layoutObfuscation
 import dataflowObfuscation
 import controlflowObfuscation
+import deadcodeObfuscation
+
+
+class ObfuscationApp:
+    def __init__(self, root: tk.Tk):
+        self.root = root
+        self.root.title("Solidity Obfuscator")
+
+        # state
+        self.input_path_var = tk.StringVar()
+        self.output_name_var = tk.StringVar()
+        self.output_dir_var = tk.StringVar()
+
+        self.controlflow_var = tk.BooleanVar(value=True)
+        self.dataflow_var = tk.BooleanVar(value=False)
+        self.layout_var = tk.BooleanVar(value=False)
+        self.deadcode_var = tk.BooleanVar(value=False)
+
+        # UI
+        self._build_ui()
+
+    def _build_ui(self):
+        frame = tk.Frame(self.root, padx=10, pady=10)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+        # 1. INPUT
+        btn_select = tk.Button(
+            frame,
+            text="Select Solidity File",
+            command=self.select_input_file,
+            width=20,
+        )
+        btn_select.grid(row=0, column=0, padx=(0, 8), pady=(0, 8), sticky="w")
+
+        lbl_input = tk.Label(frame, text="Input file:")
+        lbl_input.grid(row=1, column=0, sticky="w")
+
+        entry_input = tk.Entry(
+            frame,
+            textvariable=self.input_path_var,
+            width=60,
+            state="readonly",
+        )
+        entry_input.grid(row=1, column=1, padx=(8, 0), pady=(0, 8), sticky="w")
+
+        # 2. OUTPUT NAME
+        lbl_output_name = tk.Label(frame, text="Output file name:")
+        lbl_output_name.grid(row=2, column=0, sticky="w")
+
+        entry_output = tk.Entry(
+            frame,
+            textvariable=self.output_name_var,
+            width=40,
+        )
+        entry_output.grid(row=2, column=1, padx=(8, 0), pady=(0, 4), sticky="w")
+
+        hint_label = tk.Label(
+            frame,
+            text="(Default: original file name + '_obfu')",
+            fg="gray",
+        )
+        hint_label.grid(row=3, column=1, sticky="w")
+
+        # 3. OUTPUT LOCATION
+        btn_select_outdir = tk.Button(
+            frame,
+            text="Select Output Folder",
+            command=self.select_output_folder,
+            width=20,
+        )
+        btn_select_outdir.grid(row=4, column=0, padx=(0, 8), pady=(10, 4), sticky="w")
+
+        lbl_output_dir = tk.Label(frame, text="Output folder:")
+        lbl_output_dir.grid(row=5, column=0, sticky="w")
+
+        entry_output_dir = tk.Entry(
+            frame,
+            textvariable=self.output_dir_var,
+            width=60,
+            state="readonly",
+        )
+        entry_output_dir.grid(row=5, column=1, padx=(8, 0), pady=(0, 8), sticky="w")
+
+        # 4. Obfuscation type
+        lbl_obf = tk.Label(frame, text="Obfuscation types:")
+        lbl_obf.grid(row=6, column=0, pady=(10, 0), sticky="nw")
+
+        types_frame = tk.Frame(frame)
+        types_frame.grid(row=6, column=1, pady=(10, 0), sticky="w")
+
+        chk_controlflow = tk.Checkbutton(
+            types_frame,
+            text="Control Flow Obfuscation",
+            variable=self.controlflow_var,
+        )
+        chk_controlflow.grid(row=0, column=0, sticky="w")
+
+        chk_dataflow = tk.Checkbutton(
+            types_frame,
+            text="Data Flow Obfuscation",
+            variable=self.dataflow_var,
+        )
+        chk_dataflow.grid(row=1, column=0, sticky="w")
+
+        chk_layout = tk.Checkbutton(
+            types_frame,
+            text="Layout Obfuscation",
+            variable=self.layout_var,
+        )
+        chk_layout.grid(row=2, column=0, sticky="w")
+
+        chk_deadcode = tk.Checkbutton(
+            types_frame,
+            text="Dead Code Obfuscation",
+            variable=self.deadcode_var,
+        )
+        chk_deadcode.grid(row=3, column=0, sticky="w")
+
+        # 5. Start 
+        btn_start = tk.Button(
+            frame,
+            text="Start Obfuscation",
+            command=self.start_obfuscation,
+            width=20,
+        )
+        btn_start.grid(row=7, column=0, columnspan=2, pady=(15, 0))
+
+    # handleling
+
+    def select_input_file(self):
+        filepath = filedialog.askopenfilename(
+            title="Select Solidity file",
+            filetypes=[("Solidity files", "*.sol"), ("All files", "*.*")],
+        )
+        if not filepath:
+            return
+
+        self.input_path_var.set(filepath)
+
+        base_dir = os.path.dirname(filepath)
+        filename = os.path.basename(filepath)
+        name, ext = os.path.splitext(filename)
+
+        # defualt output name and location
+        default_out_name = f"{name}_obfu{ext}"
+        self.output_name_var.set(default_out_name)
+        self.output_dir_var.set(base_dir)
+
+    def select_output_folder(self):
+        folder = filedialog.askdirectory(
+            title="Select Output Folder"
+        )
+        if not folder:
+            return
+        self.output_dir_var.set(folder)
+
+    def start_obfuscation(self):
+        input_path = self.input_path_var.get().strip()
+        output_name = self.output_name_var.get().strip()
+        output_dir = self.output_dir_var.get().strip()
+        if not output_dir:
+            output_dir = os.path.dirname(input_path)
+            self.output_dir_var.set(output_dir)
+
+        if not input_path:
+            messagebox.showerror("Error", "Please select an input Solidity file first.")
+            return
+
+        if not os.path.exists(input_path):
+            messagebox.showerror("Error", f"Input file does not exist:\n{input_path}")
+            return
+
+        if not output_name:
+            messagebox.showerror("Error", "Please enter an output file name.")
+            return
+
+        # check at leat on check box
+        if not (
+            self.controlflow_var.get()
+            or self.dataflow_var.get()
+            or self.layout_var.get()
+            or self.deadcode_var.get()
+        ):
+            messagebox.showerror(
+                "Error",
+                "Please select at least one obfuscation type."
+            )
+            return
+
+
+        output_path = os.path.join(output_dir, output_name)
+
+        try:
+            with open(input_path, "r", encoding="utf-8") as f:
+                sol_content = f.read()
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to read input file:\n{e}")
+            return
+
+        try:
+            # Layout
+            if self.layout_var.get():
+                lo = layoutObfuscation.layoutObfuscation(sol_content)
+                sol_content = lo.run()
+
+            # Data flow
+            if self.dataflow_var.get():
+                dfo = dataflowObfuscation.dataflowObfuscation(sol_content)
+                sol_content = dfo.run()
+
+            # Control flow
+            if self.controlflow_var.get():
+                cfo = controlflowObfuscation.controlflowObfuscation(sol_content)
+                sol_content = cfo.run()
+
+            # Dead code（目前只是 placeholder）
+            if self.deadcode_var.get():
+                dco = deadcodeObfuscation.deadcodeObfuscation(sol_content)
+                sol_content = dco.run()
+                pass
+
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(sol_content)
+
+            messagebox.showinfo(
+                "Success",
+                f"Obfuscation completed.\nOutput saved to:\n{output_path}",
+            )
+        except Exception as e:
+            messagebox.showerror("Error", f"Obfuscation failed:\n{e}")
+
 
 def main():
-    print("Solidity obfuscation starts")
-    
-    solContent = ""
-    #input = sys.argv[1]
-    #input = ".\\testCase\\FirstApp.sol"
-    #input = ".\\testCase\\PrimitiveDataType.sol"
-    input = ".\\testCase\\Variable.sol"
-    #output = sys.argv[2]
-    output = ".\\output\\output.sol"
-    
-    if not os.path.exists(input):
-        raise FileNotFoundError(f"File '{input}' does not exist.")
-    #print("open {sys.argv[1]}")
-    #with open(sys.argv[1], "r", encoding = "utf-8") as f:
-    with open(input, "r", encoding = "utf-8") as f:
-        solContent = f.read()
-    
-    #dfo = dataflowObfuscation.dataflowObfuscation(solContent)
-    #solContent = dfo.run()
-    #cfo = controlflowObfuscation.controlflowObfuscation(solContent)
-    #solContent = cfo.run()
-    #lo = layoutObfuscation.layoutObfuscation(solContent)
-    #solContent = lo.run()
+    root = tk.Tk()
+    app = ObfuscationApp(root)
+    root.mainloop()
 
-    try:
-        with open(output, 'w', encoding='utf-8') as file:
-            file.write(solContent)
-        print(f"File saved successfully: {output}")
-    except Exception as e:
-        raise IOError(f"Failed to save file at {output}: {e}")
 
-main()
+if __name__ == "__main__":
+    main()

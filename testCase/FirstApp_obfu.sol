@@ -1,0 +1,1 @@
+pragma solidity ^0.8.26;contract Counter{uint256 public count;function get()public view returns(uint256){return count;}function inc()public{count+=1;}function dec()public{count-=1;}function opaqueTrue()private pure returns(bool){uint256 x=123456789;for(uint256 i=0;i<7;i++){x=uint256(keccak256(abi.encodePacked(x,i)));}return((x % 2==0)||(x % 2==1));}}

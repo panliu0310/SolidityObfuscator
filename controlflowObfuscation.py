@@ -1,18 +1,18 @@
 from typing import List
 
-
 class controlflowObfuscation:
-    """ Pipeline:
-        remove_comments -> insert_opaque_true_helper -> insert_opaque_true_in_if
-        -> shuffle_code_blocks -> minify_code
+    """ Layout-compatible control flow obfuscator.
+        Allows main.py to call:
+
+            cfo = controlflowObfuscation()
+            code = cfo.run(code)
     """
 
-    def __init__(self, code: str):
-        # store original Solidity source
-        self.code = code
+    def __init__(self):
+        pass
 
-    def run(self) -> str:
-        code = self.code
+    def run(self, code: str) -> str:
+        """Main entry point called by GUI"""
         code = self.remove_comments(code)
         code = self.insert_opaque_true_helper(code)
         code = self.insert_opaque_true_in_if(code)
@@ -20,7 +20,8 @@ class controlflowObfuscation:
         code = self.minify_code(code)
         return code
 
-    #  Comment remove
+
+    #  Comment removal
     @staticmethod
     def remove_comments(code: str) -> str:
         result_chars: List[str] = []
@@ -33,10 +34,8 @@ class controlflowObfuscation:
             # Line comment
             if c == "/" and nxt == "/":
                 i += 2
-                # Skip until end of line
                 while i < n and code[i] not in "\n\r":
                     i += 1
-                # The newline itself we keep (as a separator)
                 if i < n:
                     result_chars.append(code[i])
                     i += 1
@@ -52,14 +51,14 @@ class controlflowObfuscation:
                     i += 1
                 continue
 
-            # Otherwise keep char
             result_chars.append(c)
             i += 1
 
         return "".join(result_chars)
 
 
-    #  Opaque true helper insertion
+
+    #  Insert opaqueTrue helper
     @staticmethod
     def _find_first_contract_index(code: str) -> int:
         return code.find("contract ")
@@ -85,10 +84,10 @@ class controlflowObfuscation:
         return ((x % 2 == 0) || (x % 2 == 1));
     }
 """
-
         return code[: brace_open + 1] + helper + code[brace_open + 1 :]
 
-    #  Insert opaqueTrue into if conditions
+
+    #  Insert opaque predicate into `if` 
     def insert_opaque_true_in_if(self, code: str) -> str:
         result: List[str] = []
         i = 0
@@ -97,12 +96,12 @@ class controlflowObfuscation:
         while i < n:
             c = code[i]
 
-            # Detect standalone "if" 
+            # Detect standalone "if"
             if c == "i" and i + 1 < n and code[i + 1] == "f":
                 prev = code[i - 1] if i > 0 else " "
                 nxt = code[i + 2] if i + 2 < n else " "
                 if not (prev.isalnum() or prev == "_") and not (nxt.isalnum() or nxt == "_"):
-                    # We found an if
+
                     result.append("if")
                     i += 2
 
@@ -110,7 +109,7 @@ class controlflowObfuscation:
                         result.append(code[i])
                         i += 1
 
-                    # Expecting '('
+                    # Expect "("
                     if i < n and code[i] == "(":
                         start_paren = i
                         depth = 0
@@ -129,24 +128,26 @@ class controlflowObfuscation:
 
                         condition = code[start_paren + 1 : j]
                         new_cond = f"(({condition}) && opaqueTrue())"
+
                         result.append("(")
                         result.append(new_cond)
                         result.append(")")
                         i = j + 1
                         continue
-                    else:
-                        continue
+
                 else:
                     result.append(c)
                     i += 1
                     continue
-            # default: copy char
+
             result.append(c)
             i += 1
 
         return "".join(result)
 
-    #  Shuffle code blocks 
+
+
+    #  Shuffle blocks
     @staticmethod
     def _find_matching_brace(text: str, open_index: int) -> int:
         assert text[open_index] == "{"
@@ -166,8 +167,8 @@ class controlflowObfuscation:
         blocks: List[str] = []
         i = 0
         n = len(body)
+
         while i < n:
-            # Skip whitespace
             while i < n and body[i].isspace():
                 i += 1
             if i >= n:
@@ -175,26 +176,25 @@ class controlflowObfuscation:
 
             start = i
             brace_depth = 0
-            first_brace_pos = -1
+            first_brace = -1
 
             while i < n:
                 c = body[i]
                 if c == "{":
                     brace_depth += 1
-                    if first_brace_pos == -1:
-                        first_brace_pos = i
+                    if first_brace == -1:
+                        first_brace = i
                 elif c == "}":
                     brace_depth -= 1
-                    if brace_depth == 0 and first_brace_pos != -1:
+                    if brace_depth == 0 and first_brace != -1:
                         i += 1
                         break
-                elif c == ";" and brace_depth == 0 and first_brace_pos == -1:
+                elif c == ";" and brace_depth == 0 and first_brace == -1:
                     i += 1
                     break
                 i += 1
 
-            end = i
-            block = body[start:end]
+            block = body[start:i]
             if block.strip():
                 blocks.append(block)
 
@@ -220,8 +220,8 @@ class controlflowObfuscation:
         if len(blocks) > 1:
             blocks = blocks[1:] + blocks[:1]
 
-        new_body = "".join(blocks)
-        return header + contract_header + new_body + "}" + tail
+        return header + contract_header + "".join(blocks) + "}" + tail
+
 
     #  Minification
     @staticmethod
@@ -229,7 +229,7 @@ class controlflowObfuscation:
         code = "".join(line.strip() for line in code.splitlines())
 
         result_chars: List[str] = []
-        prev_char = ""
+        prev = ""
         space_pending = False
 
         separators = set("{}();,=:+-*/<>!&|[]")
@@ -240,12 +240,12 @@ class controlflowObfuscation:
                 continue
 
             if space_pending:
-                if (prev_char and prev_char not in separators) and (ch not in separators):
+                if prev and prev not in separators and ch not in separators:
                     result_chars.append(" ")
-                    prev_char = " "
+                    prev = " "
                 space_pending = False
 
             result_chars.append(ch)
-            prev_char = ch
+            prev = ch
 
         return "".join(result_chars).strip()

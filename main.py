@@ -206,24 +206,25 @@ class ObfuscationApp:
 
         try:
             # Layout
+            # Layout
             if self.layout_var.get():
-                lo = layoutObfuscation.layoutObfuscation(sol_content)
-                sol_content = lo.run()
+                layout_obf = layoutObfuscation.layoutObfuscation()
+                sol_content = layout_obf.run(sol_content)
 
             # Data flow
             if self.dataflow_var.get():
-                dfo = dataflowObfuscation.dataflowObfuscation(sol_content)
-                sol_content = dfo.run()
+                dataflow_obf = dataflowObfuscation.dataflowObfuscation()
+                sol_content = dataflow_obf.run(sol_content)
 
             # Control flow
             if self.controlflow_var.get():
-                cfo = controlflowObfuscation.controlflowObfuscation(sol_content)
-                sol_content = cfo.run()
+                controlflow_obf = controlflowObfuscation.controlflowObfuscation()
+                sol_content = controlflow_obf.run(sol_content)
 
-            # Dead code（目前只是 placeholder）
+            # Dead code
             if self.deadcode_var.get():
-                dco = deadcodeObfuscation.deadcodeObfuscation(sol_content)
-                sol_content = dco.run()
+                deadcode_obf = deadcodeObfuscation.deadcodeObfuscation()
+                sol_content = deadcode_obf.run(sol_content)
                 pass
 
             with open(output_path, "w", encoding="utf-8") as f:

@@ -131,7 +131,7 @@ class layoutObfuscation:
 
     def obfuscate_vectors(self, code):
         """Obfuscate array names"""
-        pattern = r'\b(bool|u?int(8|16|32|64|128|256)?|u?fixed(16x4|32x8|64x10|128x18)?|address|string|byte(s[0-9]*)?|enum)(\s*\[\s*\d*\s*\])*+\s+(([a-zA-Z_][a-zA-Z0-9_]*)\s+)*(?P<vector_name>[a-zA-Z_][a-zA-Z0-9_]*)'
+        pattern = r'\b(bool|u?int(8|16|32|64|128|256)?|u?fixed(16x4|32x8|64x10|128x18)?|address|string|byte(s[0-9]*)?|enum)(\s*\[\s*\d*\s*\])*\s+(([a-zA-Z_][a-zA-Z0-9_]*)\s+)*(?P<vector_name>[a-zA-Z_][a-zA-Z0-9_]*)'
         matches = re.finditer(pattern, code)
 
         for match in matches:

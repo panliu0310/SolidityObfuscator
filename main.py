@@ -31,6 +31,12 @@ class ObfuscationApp:
         self.controlflow_config_instruction_replace_var = tk.BooleanVar(value=True)
         self.controlflow_config_insert_opaque_predicate_var = tk.BooleanVar(value=True)
         self.controlflow_config_shuffle_code_block_var = tk.BooleanVar(value=True)
+        # configuration -> dataflow configuration
+        self.dataflow_config_scalar_to_struct_var = tk.BooleanVar(value=True)
+        self.dataflow_config_promote_local_to_global_var = tk.BooleanVar(value=True)
+        self.dataflow_config_constants_to_dynamic_arrays_var = tk.BooleanVar(value=True)
+        self.dataflow_config_split_boolean_expressions_var = tk.BooleanVar(value=True)
+        self.dataflow_config_constants_to_arithmetic_var = tk.BooleanVar(value=True)
         # configuration -> layout configuration
         self.layout_config_remove_comments_var = tk.BooleanVar(value=True)
         self.layout_config_obfuscate_variables_var = tk.BooleanVar(value=True)
@@ -172,6 +178,12 @@ class ObfuscationApp:
         self.controlflow_config_instruction_replace_var.set(self.config_dict["controlflowConfig"][1]["instructionReplace"])
         self.controlflow_config_insert_opaque_predicate_var.set(self.config_dict["controlflowConfig"][2]["insertOpaquePredicate"])
         self.controlflow_config_shuffle_code_block_var.set(self.config_dict["controlflowConfig"][3]["shuffleCodeBlock"])
+        # data flow config
+        self.dataflow_config_scalar_to_struct_var.set(self.config_dict["dataflowConfig"][0]["scalarToStruct"])
+        self.dataflow_config_promote_local_to_global_var.set(self.config_dict["dataflowConfig"][1]["promoteLocalToGlobal"])
+        self.dataflow_config_constants_to_dynamic_arrays_var.set(self.config_dict["dataflowConfig"][2]["constantsToDynamicArrays"])
+        self.dataflow_config_split_boolean_expressions_var.set(self.config_dict["dataflowConfig"][3]["splitBooleanExpressions"])
+        self.dataflow_config_constants_to_arithmetic_var.set(self.config_dict["dataflowConfig"][4]["constantsToArithmetic"])
         # layout config
         self.layout_config_remove_comments_var.set(self.config_dict["layoutConfig"][0]["removeComments"])
         self.layout_config_obfuscate_variables_var.set(self.config_dict["layoutConfig"][1]["obfuscateVariables"])
@@ -195,6 +207,12 @@ class ObfuscationApp:
         self.config_dict["controlflowConfig"][1]["instructionReplace"] = self.controlflow_config_instruction_replace_var.get()
         self.config_dict["controlflowConfig"][2]["insertOpaquePredicate"] = self.controlflow_config_insert_opaque_predicate_var.get()
         self.config_dict["controlflowConfig"][3]["shuffleCodeBlock"] = self.controlflow_config_shuffle_code_block_var.get()
+        # data flow config
+        self.config_dict["dataflowConfig"][0]["scalarToStruct"] = self.dataflow_config_scalar_to_struct_var.get()
+        self.config_dict["dataflowConfig"][1]["promoteLocalToGlobal"] = self.dataflow_config_promote_local_to_global_var.get()
+        self.config_dict["dataflowConfig"][2]["constantsToDynamicArrays"] = self.dataflow_config_constants_to_dynamic_arrays_var.get()
+        self.config_dict["dataflowConfig"][3]["splitBooleanExpressions"] = self.dataflow_config_split_boolean_expressions_var.get()
+        self.config_dict["dataflowConfig"][4]["constantsToArithmetic"] = self.dataflow_config_constants_to_arithmetic_var.get()
         # layout config
         self.config_dict["layoutConfig"][0]["removeComments"] = self.layout_config_remove_comments_var.get()
         self.config_dict["layoutConfig"][1]["obfuscateVariables"] = self.layout_config_obfuscate_variables_var.get()
@@ -207,11 +225,13 @@ class ObfuscationApp:
     def open_config_window(self):
         config_window = tk.Toplevel(self.root)  # Link to the main window
         config_window.title("Configuration Window")
-        config_window.geometry("300x400")  # Set dimensions
+        config_window.geometry("400x600")  # Set dimensions
 
+        # control flow label
         lbl_control_flow = tk.Label(config_window, text="Control flow configurations:")
         lbl_control_flow.grid(row=0, column=0, pady=(10, 0), sticky="nw")
 
+        # control flow frame
         control_flow_frame = tk.Frame(config_window)
         control_flow_frame.grid(row=1, column=0, pady=(10, 0), sticky="w")
 
@@ -243,11 +263,56 @@ class ObfuscationApp:
         )
         chk_controlflow_shuffle_code_block.grid(row=3, column=0, sticky="w")
 
-        lbl_layout_flow = tk.Label(config_window, text="layout configurations:")
-        lbl_layout_flow.grid(row=2, column=0, pady=(10, 0), sticky="nw")
+        # data flow label
+        lbl_data_flow = tk.Label(config_window, text="dataflow configurations:")
+        lbl_data_flow.grid(row=2, column=0, pady=(10, 0), sticky="nw")
 
+        # data flow frame
+        dataflow_frame = tk.Frame(config_window)
+        dataflow_frame.grid(row=3, column=0, pady=(10, 0), sticky="w")
+
+        chk_dataflow_scalar_to_struct = tk.Checkbutton(
+            dataflow_frame,
+            text="scalar to struct",
+            variable=self.dataflow_config_scalar_to_struct_var,
+        )
+        chk_dataflow_scalar_to_struct.grid(row=0, column=0, sticky="w")
+
+        chk_dataflow_promote_local_to_global = tk.Checkbutton(
+            dataflow_frame,
+            text="promote local to global",
+            variable=self.dataflow_config_promote_local_to_global_var,
+        )
+        chk_dataflow_promote_local_to_global.grid(row=1, column=0, sticky="w")
+
+        chk_dataflow_constants_to_dynamic_arrays = tk.Checkbutton(
+            dataflow_frame,
+            text="constants to dynamic arrays",
+            variable=self.dataflow_config_constants_to_dynamic_arrays_var,
+        )
+        chk_dataflow_constants_to_dynamic_arrays.grid(row=2, column=0, sticky="w")
+
+        chk_dataflow_split_boolean_expressions = tk.Checkbutton(
+            dataflow_frame,
+            text="split boolean expressions",
+            variable=self.dataflow_config_split_boolean_expressions_var,
+        )
+        chk_dataflow_split_boolean_expressions.grid(row=3, column=0, sticky="w")
+
+        chk_dataflow_constants_to_arithmetic = tk.Checkbutton(
+            dataflow_frame,
+            text="constants to arithmetic",
+            variable=self.dataflow_config_constants_to_arithmetic_var,
+        )
+        chk_dataflow_constants_to_arithmetic.grid(row=4, column=0, sticky="w")
+
+        # layout label
+        lbl_layout = tk.Label(config_window, text="layout configurations:")
+        lbl_layout.grid(row=4, column=0, pady=(10, 0), sticky="nw")
+
+        # layout frame
         layout_frame = tk.Frame(config_window)
-        layout_frame.grid(row=3, column=0, pady=(10, 0), sticky="w")
+        layout_frame.grid(row=5, column=0, pady=(10, 0), sticky="w")
 
         chk_layout_remove_comments = tk.Checkbutton(
             layout_frame,
@@ -366,13 +431,28 @@ class ObfuscationApp:
         try:
             # Layout
             if self.layout_var.get():
+                loCfg = layoutObfuscation.layoutConfig(
+                    self.layout_config_remove_comments_var.get(),
+                    self.layout_config_obfuscate_variables_var.get(),
+                    self.layout_config_obfuscate_mappings_var.get(),
+                    self.layout_config_obfuscate_vectors_var.get(),
+                    self.layout_config_obfuscate_functions_var.get(),
+                    self.layout_config_minify_code_var.get()
+                )
                 lo = layoutObfuscation.layoutObfuscation(sol_content)
-                sol_content = lo.run()
+                sol_content = lo.run(loCfg)
 
             # Data flow
             if self.dataflow_var.get():
+                dfoCfg = dataflowObfuscation.dataflowConfig(
+                    self.dataflow_config_scalar_to_struct_var.get(),
+                    self.dataflow_config_promote_local_to_global_var.get(),
+                    self.dataflow_config_constants_to_dynamic_arrays_var.get(),
+                    self.dataflow_config_split_boolean_expressions_var.get(),
+                    self.dataflow_config_constants_to_arithmetic_var.get()
+                )
                 dfo = dataflowObfuscation.dataflowObfuscation(sol_content)
-                sol_content = dfo.obfuscate()
+                sol_content = dfo.obfuscate(dfoCfg)
 
             # Control flow
             if self.controlflow_var.get():
@@ -380,7 +460,8 @@ class ObfuscationApp:
                     self.controlflow_config_instruction_insert_var.get(),
                     self.controlflow_config_instruction_replace_var.get(),
                     self.controlflow_config_insert_opaque_predicate_var.get(),
-                    self.controlflow_config_shuffle_code_block_var.get())
+                    self.controlflow_config_shuffle_code_block_var.get()
+                    )
                 cfo = controlflowObfuscation.controlflowObfuscation(sol_content)
                 sol_content = cfo.run(cfoCfg)
 

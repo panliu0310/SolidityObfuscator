@@ -37,7 +37,21 @@
         }
     ],
     "dataflowConfig": [
-        {}
+        {
+            "scalarToStruct": true
+        },
+        {
+            "promoteLocalToGlobal": true
+        },
+        {
+            "constantsToDynamicArrays": true
+        },
+        {
+            "splitBooleanExpressions": true
+        },
+        {
+            "constantsToArithmetic": true
+        }
     ],
     "controlflowConfig": [
         {

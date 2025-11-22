@@ -2,6 +2,7 @@ import os
 import tkinter as tk
 from tkinter import filedialog, messagebox
 
+from utilities import config
 import layoutObfuscation
 import dataflowObfuscation
 import controlflowObfuscation
@@ -12,6 +13,9 @@ class ObfuscationApp:
     def __init__(self, root: tk.Tk):
         self.root = root
         self.root.title("Solidity Obfuscator")
+
+        # configuraion
+        self.config_dict = dict()
 
         # state
         self.input_path_var = tk.StringVar()
@@ -132,6 +136,27 @@ class ObfuscationApp:
         )
         btn_start.grid(row=7, column=0, columnspan=2, pady=(15, 0))
 
+    # configuration
+    def apply_config(self):
+        self.input_path_var.set(self.config_dict["inputPath"])
+        self.output_name_var.set(self.config_dict["outputName"])
+        self.output_dir_var.set(self.config_dict["outputDir"])
+
+        self.controlflow_var.set(self.config_dict["obfuscationType"][0]["controlflow"])
+        self.dataflow_var.set(self.config_dict["obfuscationType"][1]["dataflow"])
+        self.layout_var.set(self.config_dict["obfuscationType"][2]["layout"])
+        self.deadcode_var.set(self.config_dict["obfuscationType"][3]["deadcode"])
+
+    def get_config(self) -> dict:
+        self.config_dict["inputPath"] = self.input_path_var.get()
+        self.config_dict["outputName"] = self.output_name_var.get()
+        self.config_dict["outputDir"] = self.output_dir_var.get()
+
+        self.config_dict["obfuscationType"][0]["controlflow"] = self.controlflow_var.get()
+        self.config_dict["obfuscationType"][1]["dataflow"] = self.dataflow_var.get()
+        self.config_dict["obfuscationType"][2]["layout"] = self.layout_var.get()
+        self.config_dict["obfuscationType"][3]["deadcode"] = self.deadcode_var.get()
+
     # handleling
 
     def select_input_file(self):
@@ -181,7 +206,7 @@ class ObfuscationApp:
             messagebox.showerror("Error", "Please enter an output file name.")
             return
 
-        # check at leat on check box
+        # check at least 1 item selected on check box
         if not (
             self.controlflow_var.get()
             or self.dataflow_var.get()
@@ -240,7 +265,17 @@ class ObfuscationApp:
 def main():
     root = tk.Tk()
     app = ObfuscationApp(root)
+    # load configuration
+    configObject = config.config(".\\Configuration.json")
+    app.config_dict = configObject.load_config()
+    app.apply_config()
+
+    # main loop
     root.mainloop()
+
+    # save configuration
+    app.get_config()
+    configObject.save_config(app.config_dict)
 
 
 if __name__ == "__main__":

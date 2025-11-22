@@ -1,0 +1,28 @@
+{
+    "inputPath": "",
+    "outputName": "",
+    "outputDir": "",
+    "obfuscationType": [
+        {
+            "controlflow": true
+        },
+        {
+            "dataflow": true
+        },
+        {
+            "layout": true
+        },
+        {
+            "deadcode": false
+        }
+    ],
+    "layoutConfig": [
+        {}
+    ],
+    "dataflowConfig": [
+        {}
+    ],
+    "controlflowConfig": [
+        {}
+    ]
+}

@@ -1,6 +1,7 @@
 import os
 import tkinter as tk
 from tkinter import filedialog, messagebox
+import re
 
 from utilities import config
 import layoutObfuscation
@@ -429,18 +430,26 @@ class ObfuscationApp:
             return
 
         try:
-            # Layout
-            if self.layout_var.get():
-                loCfg = layoutObfuscation.layoutConfig(
-                    self.layout_config_remove_comments_var.get(),
-                    self.layout_config_obfuscate_variables_var.get(),
-                    self.layout_config_obfuscate_mappings_var.get(),
-                    self.layout_config_obfuscate_vectors_var.get(),
-                    self.layout_config_obfuscate_functions_var.get(),
-                    self.layout_config_minify_code_var.get()
-                )
-                lo = layoutObfuscation.layoutObfuscation(sol_content)
-                sol_content = lo.run(loCfg)
+            # pragme statement should not be obfuscated, so we extract it out and put it back in the last step
+            pragma_pattern = r'(pragma\s+solidity\s+[^;]+;)'  # Matches the pragma line
+            pragma_match = re.search(pragma_pattern, sol_content)
+    
+            # Extract the pragma statement if it exists and remove it from code
+            pragma_statement = pragma_match.group(0) if pragma_match else ""
+    
+            # Remove the pragma statement from the code
+            sol_content = re.sub(pragma_pattern, '', sol_content)
+
+            # Control flow
+            if self.controlflow_var.get():
+                cfoCfg = controlflowObfuscation.controlflowConfig(
+                    self.controlflow_config_instruction_insert_var.get(),
+                    self.controlflow_config_instruction_replace_var.get(),
+                    self.controlflow_config_insert_opaque_predicate_var.get(),
+                    self.controlflow_config_shuffle_code_block_var.get()
+                    )
+                cfo = controlflowObfuscation.controlflowObfuscation(sol_content)
+                sol_content = cfo.run(cfoCfg)
 
             # Data flow
             if self.dataflow_var.get():
@@ -454,22 +463,27 @@ class ObfuscationApp:
                 dfo = dataflowObfuscation.dataflowObfuscation(sol_content)
                 sol_content = dfo.obfuscate(dfoCfg)
 
-            # Control flow
-            if self.controlflow_var.get():
-                cfoCfg = controlflowObfuscation.controlflowConfig(
-                    self.controlflow_config_instruction_insert_var.get(),
-                    self.controlflow_config_instruction_replace_var.get(),
-                    self.controlflow_config_insert_opaque_predicate_var.get(),
-                    self.controlflow_config_shuffle_code_block_var.get()
-                    )
-                cfo = controlflowObfuscation.controlflowObfuscation(sol_content)
-                sol_content = cfo.run(cfoCfg)
+            # Layout
+            if self.layout_var.get():
+                loCfg = layoutObfuscation.layoutConfig(
+                    self.layout_config_remove_comments_var.get(),
+                    self.layout_config_obfuscate_variables_var.get(),
+                    self.layout_config_obfuscate_mappings_var.get(),
+                    self.layout_config_obfuscate_vectors_var.get(),
+                    self.layout_config_obfuscate_functions_var.get(),
+                    self.layout_config_minify_code_var.get()
+                )
+                lo = layoutObfuscation.layoutObfuscation(sol_content)
+                sol_content = lo.run(loCfg)
 
             # Dead code（目前只是 placeholder）
             if self.deadcode_var.get():
                 dco = deadcodeObfuscation.deadcodeObfuscation(sol_content)
                 sol_content = dco.run()
                 pass
+
+            # add the pragma statement back
+            sol_content = pragma_statement + sol_content
 
             with open(output_path, "w", encoding="utf-8") as f:
                 f.write(sol_content)

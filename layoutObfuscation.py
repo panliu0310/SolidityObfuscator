@@ -65,7 +65,7 @@ class layoutObfuscation:
         for line in lines:
             # Randomly decide whether to delete this line (if it's empty)
             if line.strip() == '':
-                if random.random() > 0.95:  # 10% probability to keep empty line
+                if random.random() > 0.95:  # 5% probability to keep empty line
                     processed_lines.append(line)
                 continue
             
@@ -82,7 +82,7 @@ class layoutObfuscation:
                         i += 1
                         continue              
                     # Randomly decide whether to keep this whitespace character
-                    if random.random() > 0.95:  # 1% probability to keep whitespace
+                    if random.random() > 0.95:  # 5% probability to keep whitespace
                         processed_line += line[i]
                     i += 1
                 else:
@@ -110,7 +110,7 @@ class layoutObfuscation:
             var_name = match.group('var_name')
             if var_name not in self.variable_map:
                 self.variable_map[var_name] = generate_random_name()
-                code = re.sub(rf'(?P<stay>"[^"]*")|(?<!msg\.)\b{var_name}\b', lambda x: x.group('stay') if x.group('stay') else self.variable_map[var_name], code)
+                code = re.sub(rf'(?P<stay>"[^"]*")|(?<!msg\.)(?<!block\.)\b{var_name}\b', lambda x: x.group('stay') if x.group('stay') else self.variable_map[var_name], code)
 
         return code
 
@@ -179,7 +179,7 @@ class layoutObfuscation:
 
         return code
 
-    def minify_code(code: str) -> str:
+    def minify_code(self, code: str) -> str:
         code = "".join(line.strip() for line in code.splitlines())
 
         result_chars: List[str] = []

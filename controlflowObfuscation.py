@@ -28,7 +28,8 @@ class controlflowObfuscation:
         #code = self.remove_comments(code) # duplicated function in layout obfuscator
         if config.instruction_insert_config:
             code = self.instruction_insert(code)
-        #code = self.instruction_replace(code)
+        if config.instruction_replace_config:
+            code = self.instruction_replace(code)
         if config.insert_opaque_predicate_config:
             code = self.insert_opaque_true_helper(code)
             code = self.insert_opaque_true_in_if(code)
@@ -88,10 +89,9 @@ class controlflowObfuscation:
     
     @staticmethod
     def instruction_replace(code: str) -> str:
-        # a exclusive_or b ==> (a and not b) or (b and not a)
-		# - (?<!pragma\s+solidity\s*\^): This is a negative lookbehind assertion
-        replacePattern = r'(?<!pragma\s+solidity\s*\^)([\w.]+)\s*\^\s*([\w.]+)'
-        code = re.sub(replacePattern, r'(\1 && !\2) || (\2 && !\1)', code)
+		# a exclusive_or b ==> (a and not b) or (b and not a)
+        replace_pattern = r'([\w.]+)\s*\^\s*([\w.]+)'
+        code = re.sub(replace_pattern, r'(\1 && !\2) || (\2 && !\1)', code)
         return code
 
     #  Opaque true helper insertion

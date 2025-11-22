@@ -1,5 +1,5 @@
 from typing import List
-
+import re
 
 class controlflowObfuscation:
     """ Pipeline:
@@ -14,6 +14,8 @@ class controlflowObfuscation:
     def run(self) -> str:
         code = self.code
         code = self.remove_comments(code)
+        code = self.instruction_insert(code)
+        #code = self.instruction_replace(code)
         code = self.insert_opaque_true_helper(code)
         code = self.insert_opaque_true_in_if(code)
         code = self.shuffle_code_blocks(code)
@@ -57,7 +59,24 @@ class controlflowObfuscation:
             i += 1
 
         return "".join(result_chars)
-
+    
+    @staticmethod
+    def instruction_insert(code: str) -> str:
+        # Match variable assignments like: variable = value;
+        # - ([\w.]+): Matches variable names (e.g., `variable`, `obj.property`)
+        # - \s*=\s*: Matches the equals sign with optional spaces around it
+        # - (\b-?\d+\.*\d+\b);: Matches positive or negative integers or decimals
+        insertPattern = r'([\w.]+)\s*=\s*(\b-?\d+\.*\d+\b);'
+        code = re.sub(insertPattern, r'\1 = \2 ^ 1 ^ 1;', code)
+        return code
+    
+    @staticmethod
+    def instruction_replace(code: str) -> str:
+        # a exclusive_or b ==> (a and not b) or (b and not a)
+		# - (?<!pragma\s+solidity\s*\^): This is a negative lookbehind assertion
+        replacePattern = r'(?<!pragma\s+solidity\s*\^)([\w.]+)\s*\^\s*([\w.]+)'
+        code = re.sub(replacePattern, r'(\1 && !\2) || (\2 && !\1)', code)
+        return code
 
     #  Opaque true helper insertion
     @staticmethod

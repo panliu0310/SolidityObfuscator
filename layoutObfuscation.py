@@ -131,13 +131,7 @@ class layoutObfuscation:
 
     def obfuscate_vectors(self, code):
         """Obfuscate array names"""
-        code = self.obfuscate_simple_vectors(code)
-        code = self.obfuscate_nested_vectors(code)
-        return code
-
-    def obfuscate_simple_vectors(self, code):
-        """Obfuscate array names"""
-        pattern = r'\b(bool|u?int(8|16|32|64|128|256)?|u?fixed(16x4|32x8|64x10|128x18)?|address|string|byte(s[0-9]*)?|enum)(\s*\[\s*\d*\s*\])+\s+(([a-zA-Z_][a-zA-Z0-9_]*)\s+)*(?P<vector_name>[a-zA-Z_][a-zA-Z0-9_]*)'
+        pattern = r'\b(bool|u?int(8|16|32|64|128|256)?|u?fixed(16x4|32x8|64x10|128x18)?|address|string|byte(s[0-9]*)?|enum)(\s*\[\s*\d*\s*\])*+\s+(([a-zA-Z_][a-zA-Z0-9_]*)\s+)*(?P<vector_name>[a-zA-Z_][a-zA-Z0-9_]*)'
         matches = re.finditer(pattern, code)
 
         for match in matches:
@@ -145,20 +139,6 @@ class layoutObfuscation:
             if vector_name not in self.variable_map:
                 self.variable_map[vector_name] = generate_random_name()
                 code = re.sub(rf'(?P<stay>"[^"]*")|\b{vector_name}\b', lambda x: x.group('stay') if x.group('stay') else self.variable_map[vector_name], code)
-
-        return code
-
-    def obfuscate_nested_vectors(self, code):
-        pattern = r'\b(bool|u?int(8|16|32|64|128|256)?|u?fixed(16x4|32x8|64x10|128x18)?|address|string|byte(s[0-9]*)?|enum)(\s*\[\s*\d*\s*\]){2,}\s+(([a-zA-Z_][a-zA-Z0-9_]*)\s+)*(?P<nested_array_name>[a-zA-Z_][a-zA-Z0-9_]*)'
-        matches = re.finditer(pattern, code)
-
-        for match in matches:
-            vector_name = match.group('nested_vector_name')
-            if vector_name and vector_name not in self.variable_map:
-                self.variable_map[vector_name] = generate_random_name()
-                code = re.sub(
-                    rf'(?P<stay>"[^"]*")|\b{vector_name}\b', lambda x: x.group('stay') if x.group('stay') else self.variable_map[vector_name], code
-                )
 
         return code
 

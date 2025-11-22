@@ -1,0 +1,40 @@
+from solcx import compile_source, install_solc
+import json
+
+# Install specified version of solc
+install_solc('0.8.26')
+
+
+def generate_ast_from_source(solidity_code):
+    """Generate AST from Solidity source code"""
+    compiled_sol = compile_source(
+        solidity_code,
+        output_values=['ast'],
+        solc_version='0.8.26'
+    )
+
+    # Get AST of the first contract
+    contract_id, contract_interface = compiled_sol.popitem()
+    ast = contract_interface['ast']
+
+    return ast
+
+
+def generate_ast_from_file(file_path):
+    """Generate AST from Solidity file"""
+    with open(file_path, 'r', encoding='utf-8') as f:
+        solidity_code = f.read()
+
+    return generate_ast_from_source(solidity_code)
+
+
+# Usage example
+if __name__ == "__main__":
+    # Generate from file
+    ast = generate_ast_from_file("contract.sol")
+
+    # Save AST to file
+    with open("contract_ast.json", "w") as f:
+        json.dump(ast, f, indent=2)
+
+    print("AST file generated: contract_ast.json")

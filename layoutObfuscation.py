@@ -111,7 +111,7 @@ class layoutObfuscation:
             mapping_name = match.group('mapping_name')
             if mapping_name not in self.function_map:
                 self.function_map[mapping_name] = generate_random_name()
-                code = re.sub(rf'(?P<stay>"[^"]*")|\b{mapping_name}\b', lambda x: x.group('stay') if x.group('stay') else self.function_map[mapping_name], code)
+                code = re.sub(rf'(?P<stay>"[^"]*")|(?<!msg\.)(?<!block\.)\b{mapping_name}\b', lambda x: x.group('stay') if x.group('stay') else self.function_map[mapping_name], code)
 
         return code
     
@@ -124,7 +124,7 @@ class layoutObfuscation:
             if mapping_name and mapping_name not in self.variable_map:
                 self.variable_map[mapping_name] = generate_random_name()
                 code = re.sub(
-                    rf'(?P<stay>"[^"]*")|\b{mapping_name}\b', lambda x: x.group('stay') if x.group('stay') else self.variable_map[mapping_name], code
+                    rf'(?P<stay>"[^"]*")|(?<!msg\.)(?<!block\.)\b{mapping_name}\b', lambda x: x.group('stay') if x.group('stay') else self.variable_map[mapping_name], code
                 )
 
         return code
@@ -138,7 +138,7 @@ class layoutObfuscation:
             vector_name = match.group('vector_name')
             if vector_name not in self.variable_map:
                 self.variable_map[vector_name] = generate_random_name()
-                code = re.sub(rf'(?P<stay>"[^"]*")|\b{vector_name}\b', lambda x: x.group('stay') if x.group('stay') else self.variable_map[vector_name], code)
+                code = re.sub(rf'(?P<stay>"[^"]*")|(?<!msg\.)(?<!block\.)\b{vector_name}\b', lambda x: x.group('stay') if x.group('stay') else self.variable_map[vector_name], code)
 
         return code
 
@@ -157,7 +157,7 @@ class layoutObfuscation:
             
             if func_name not in self.function_map:
                 self.function_map[func_name] = generate_random_name()
-                code = re.sub(rf'(?P<stay>"[^"]*")|\b{func_name}\b', lambda x: x.group('stay') if x.group('stay') else self.function_map[func_name], code)
+                code = re.sub(rf'(?P<stay>"[^"]*")|(?<!msg\.)(?<!block\.)\b{func_name}\b', lambda x: x.group('stay') if x.group('stay') else self.function_map[func_name], code)
 
         return code
 

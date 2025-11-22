@@ -10,10 +10,11 @@ def generate_random_name(length=0):
 class layoutObfuscation:
     """Layout Obfuscator"""
 
-    def __init__(self):
+    def __init__(self, code):
         """
         Initialize the obfuscator
         """
+        self.code = code
         self.variable_map = {}
         self.function_map = {}
     
@@ -161,7 +162,7 @@ class layoutObfuscation:
 
         return code
 
-    def run(self, code):
+    def run(self):
         """
         Apply layout obfuscation
         :param code: Input code

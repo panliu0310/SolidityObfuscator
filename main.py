@@ -213,7 +213,7 @@ class ObfuscationApp:
             # Data flow
             if self.dataflow_var.get():
                 dfo = dataflowObfuscation.dataflowObfuscation(sol_content)
-                sol_content = dfo.run()
+                sol_content = dfo.obfuscate()
 
             # Control flow
             if self.controlflow_var.get():

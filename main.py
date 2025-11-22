@@ -8,14 +8,10 @@ import dataflowObfuscation
 import controlflowObfuscation
 import deadcodeObfuscation
 
-
 class ObfuscationApp:
     def __init__(self, root: tk.Tk):
         self.root = root
         self.root.title("Solidity Obfuscator")
-
-        # configuraion
-        self.config_dict = dict()
 
         # state
         self.input_path_var = tk.StringVar()
@@ -26,6 +22,15 @@ class ObfuscationApp:
         self.dataflow_var = tk.BooleanVar(value=False)
         self.layout_var = tk.BooleanVar(value=False)
         self.deadcode_var = tk.BooleanVar(value=False)
+
+        # configuraion
+        self.config_dict = dict()
+
+        # configuration -> control flow configuration
+        self.controlflow_config_instruction_insert_var = tk.BooleanVar(value=True)
+        self.controlflow_config_instruction_replace_var = tk.BooleanVar(value=True)
+        self.controlflow_config_insert_opaque_predicate_var = tk.BooleanVar(value=True)
+        self.controlflow_config_shuffle_code_block_var = tk.BooleanVar(value=True)
 
         # UI
         self._build_ui()
@@ -127,6 +132,14 @@ class ObfuscationApp:
         )
         chk_deadcode.grid(row=3, column=0, sticky="w")
 
+        btn_edit_config = tk.Button(
+            frame,
+            text="Edit Configuration",
+            command=self.open_config_window,
+            width=20,
+        )
+        btn_edit_config.grid(row=7, column=0, padx=(0, 8), pady=(0, 8), sticky="w")
+
         # 5. Start 
         btn_start = tk.Button(
             frame,
@@ -134,7 +147,7 @@ class ObfuscationApp:
             command=self.start_obfuscation,
             width=20,
         )
-        btn_start.grid(row=7, column=0, columnspan=2, pady=(15, 0))
+        btn_start.grid(row=8, column=0, columnspan=2, pady=(15, 0))
 
     # configuration
     def apply_config(self):
@@ -156,6 +169,46 @@ class ObfuscationApp:
         self.config_dict["obfuscationType"][1]["dataflow"] = self.dataflow_var.get()
         self.config_dict["obfuscationType"][2]["layout"] = self.layout_var.get()
         self.config_dict["obfuscationType"][3]["deadcode"] = self.deadcode_var.get()
+
+    # configuration
+    def open_config_window(self):
+        config_window = tk.Toplevel(self.root)  # Link to the main window
+        config_window.title("Configuration Window")
+        config_window.geometry("300x200")  # Set dimensions
+
+        lbl_control_flow = tk.Label(config_window, text="Control flow configurations:")
+        lbl_control_flow.grid(row=0, column=0, pady=(10, 0), sticky="nw")
+
+        control_flow_frame = tk.Frame(config_window)
+        control_flow_frame.grid(row=1, column=0, pady=(10, 0), sticky="w")
+
+        chk_controlflow_instuction_insert = tk.Checkbutton(
+            control_flow_frame,
+            text="instruction insert",
+            variable=self.controlflow_config_instruction_insert_var,
+        )
+        chk_controlflow_instuction_insert.grid(row=0, column=0, sticky="w")
+
+        chk_controlflow_instruction_replace = tk.Checkbutton(
+            control_flow_frame,
+            text="instruction replace",
+            variable=self.controlflow_config_instruction_replace_var,
+        )
+        chk_controlflow_instruction_replace.grid(row=1, column=0, sticky="w")
+
+        chk_controlflow_insert_opaque_predicate = tk.Checkbutton(
+            control_flow_frame,
+            text="insert opaque predicate",
+            variable=self.controlflow_config_insert_opaque_predicate_var,
+        )
+        chk_controlflow_insert_opaque_predicate.grid(row=2, column=0, sticky="w")
+
+        chk_controlflow_shuffle_code_block = tk.Checkbutton(
+            control_flow_frame,
+            text="shuffle code block",
+            variable=self.controlflow_config_shuffle_code_block_var,
+        )
+        chk_controlflow_shuffle_code_block.grid(row=3, column=0, sticky="w")
 
     # handleling
 

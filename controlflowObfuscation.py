@@ -91,7 +91,7 @@ class controlflowObfuscation:
     def instruction_replace(code: str) -> str:
 		# a exclusive_or b ==> (a and not b) or (b and not a)
         replace_pattern = r'([\w.]+)\s*\^\s*([\w.]+)'
-        code = re.sub(replace_pattern, r'(\1 && !\2) || (\2 && !\1)', code)
+        code = re.sub(replace_pattern, r'(\1 & ~\2) | (\2 & ~\1)', code)
         return code
 
     #  Opaque true helper insertion

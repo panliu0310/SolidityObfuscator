@@ -8,9 +8,7 @@ def generate_random_name(length=0):
     return random.choice(string.ascii_lowercase) + ''.join(random.choices(string.ascii_letters + string.digits, k=length-1))
 
 class layoutObfuscation:
-    """
-    Layout Obfuscator
-    """
+    """Layout Obfuscator"""
 
     def __init__(self):
         """
@@ -86,11 +84,7 @@ class layoutObfuscation:
         return processed_code
     
     def obfuscate_variables(self, code):
-        """
-        Obfuscate variable names
-        :param code: Input code
-        :return: Code with obfuscated variable names
-        """
+        """Obfuscate variable names"""
         pattern = r'\b(bool|u?int(8|16|32|64|128|256)?|u?fixed(16x4|32x8|64x10|128x18)|address|string|byte(s[0-9]*)?|enum)\s+(([a-zA-Z_][a-zA-Z0-9_]*)\s+)*(?P<var_name>[a-zA-Z_][a-zA-Z0-9_]*)'
         matches = re.finditer(pattern, code)
 
@@ -103,10 +97,13 @@ class layoutObfuscation:
         return code
 
     def obfuscate_mappings(self, code):
-        '''
-        Obfuscate mapping names
-        :param code: Input code
-        :return: Code with obfuscated mapping names'''
+        """Obfuscate mapping names, including nested mappings"""
+        code = self.obfuscate_single_mappings(code)
+        code = self.obfuscate_nested_mappings(code)
+        return code
+    
+    def obfuscate_single_mappings(self, code):
+        """Obfuscate mapping names"""
         pattern = r'\bmapping\s*\(\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*=>\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\)\s+(([a-zA-Z_][a-zA-Z0-9_]*)\s+)*(?P<mapping_name>[a-zA-Z_][a-zA-Z0-9_]*)'
         matches = re.finditer(pattern, code)
 
@@ -118,13 +115,55 @@ class layoutObfuscation:
 
         return code
     
+    def obfuscate_nested_mappings(self, code):
+        pattern = r'\bmapping\s*\(\s*[^=>]+\s*=>\s*(mapping\s*\(\s*[^=>]+\s*=>\s*)*[^)]+\s*\)(\s*\))*\s+(([a-zA-Z_][a-zA-Z0-9_]*)\s+)*(?P<nested_mapping_name>[a-zA-Z_][a-zA-Z0-9_]*)'
+        matches = re.finditer(pattern, code)
+
+        for match in matches:
+            mapping_name = match.group('nested_mapping_name')
+            if mapping_name and mapping_name not in self.variable_map:
+                self.variable_map[mapping_name] = generate_random_name()
+                code = re.sub(
+                    rf'(?P<stay>"[^"]*")|\b{mapping_name}\b', lambda x: x.group('stay') if x.group('stay') else self.variable_map[mapping_name], code
+                )
+
+        return code
+
+    def obfuscate_vectors(self, code):
+        """Obfuscate array names"""
+        code = self.obfuscate_simple_vectors(code)
+        code = self.obfuscate_nested_vectors(code)
+        return code
+
+    def obfuscate_simple_vectors(self, code):
+        """Obfuscate array names"""
+        pattern = r'\b(bool|u?int(8|16|32|64|128|256)?|u?fixed(16x4|32x8|64x10|128x18)?|address|string|byte(s[0-9]*)?|enum)(\s*\[\s*\d*\s*\])+\s+(([a-zA-Z_][a-zA-Z0-9_]*)\s+)*(?P<vector_name>[a-zA-Z_][a-zA-Z0-9_]*)'
+        matches = re.finditer(pattern, code)
+
+        for match in matches:
+            vector_name = match.group('vector_name')
+            if vector_name not in self.variable_map:
+                self.variable_map[vector_name] = generate_random_name()
+                code = re.sub(rf'(?P<stay>"[^"]*")|\b{vector_name}\b', lambda x: x.group('stay') if x.group('stay') else self.variable_map[vector_name], code)
+
+        return code
+
+    def obfuscate_nested_vectors(self, code):
+        pattern = r'\b(bool|u?int(8|16|32|64|128|256)?|u?fixed(16x4|32x8|64x10|128x18)?|address|string|byte(s[0-9]*)?|enum)(\s*\[\s*\d*\s*\]){2,}\s+(([a-zA-Z_][a-zA-Z0-9_]*)\s+)*(?P<nested_array_name>[a-zA-Z_][a-zA-Z0-9_]*)'
+        matches = re.finditer(pattern, code)
+
+        for match in matches:
+            vector_name = match.group('nested_vector_name')
+            if vector_name and vector_name not in self.variable_map:
+                self.variable_map[vector_name] = generate_random_name()
+                code = re.sub(
+                    rf'(?P<stay>"[^"]*")|\b{vector_name}\b', lambda x: x.group('stay') if x.group('stay') else self.variable_map[vector_name], code
+                )
+
+        return code
+
     def obfuscate_functions(self, code):
-        """
-        Obfuscate names of functions, modifiers, contracts, structs, and events
-        :param code: Input code
-        :return: Code with obfuscated function names
-        """
-        
+        """Obfuscate names of functions, modifiers, contracts, structs, and events"""
         excluded_functions = {'fallback', 'receive'}
 
         pattern = r'(function|modifier|contract|event|struct)\s+(?P<func_name>[a-zA-Z0-9_]*)\s*(\(|\{)'
@@ -149,15 +188,14 @@ class layoutObfuscation:
         :return: Obfuscated code
         """
         
-        # Remove comments
-        code = self.remove_comments(code)
-        # Obfuscate variable names
-        code = self.obfuscate_variables(code)
-        # Obfuscate mapping names
-        code = self.obfuscate_mappings(code)
-        # Obfuscate function names
-        code = self.obfuscate_functions(code)
-        # Randomly remove whitespace
-        code = self.random_remove_whitespace(code)
-
-        return code
+        try:
+            code = self.remove_comments(code)
+            code = self.random_remove_whitespace(code)
+            code = self.obfuscate_variables(code)
+            code = self.obfuscate_mappings(code)
+            code = self.obfuscate_vectors(code)
+            code = self.obfuscate_functions(code)
+            return code
+        except Exception as e:
+            print(f"Error during obfuscation: {e}")
+            return code

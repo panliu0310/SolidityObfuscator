@@ -1,6 +1,18 @@
 from typing import List
 import re
 
+class controlflowConfig:
+    instruction_insert_config: bool
+    instruction_replace_config: bool
+    insert_opaque_predicate_config: bool
+    shuffle_code_blocks_config: bool
+    
+    def __init__(self, _instruction_insert, _instruction_replace, _insert_opaque_predicate, _shuffle_code_blocks):
+        self.instruction_insert_config = _instruction_insert
+        self.instruction_replace_config = _instruction_replace
+        self.insert_opaque_predicate_config = _insert_opaque_predicate
+        self.shuffle_code_blocks_config = _shuffle_code_blocks
+
 class controlflowObfuscation:
     """ Pipeline:
         remove_comments -> insert_opaque_true_helper -> insert_opaque_true_in_if
@@ -11,17 +23,20 @@ class controlflowObfuscation:
         # store original Solidity source
         self.code = code
 
-    def run(self) -> str:
+    def run(self, config: controlflowConfig) -> str:
         code = self.code
         code = self.remove_comments(code)
-        code = self.instruction_insert(code)
+        if config.instruction_insert_config:
+            code = self.instruction_insert(code)
         #code = self.instruction_replace(code)
-        code = self.insert_opaque_true_helper(code)
-        code = self.insert_opaque_true_in_if(code)
-        code = self.shuffle_code_blocks(code)
+        if config.insert_opaque_predicate_config:
+            code = self.insert_opaque_true_helper(code)
+            code = self.insert_opaque_true_in_if(code)
+        if config.shuffle_code_blocks_config:
+            code = self.shuffle_code_blocks(code)
         code = self.minify_code(code)
         return code
-
+        
     #  Comment remove
     @staticmethod
     def remove_comments(code: str) -> str:

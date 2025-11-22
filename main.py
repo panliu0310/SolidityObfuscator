@@ -151,24 +151,36 @@ class ObfuscationApp:
 
     # configuration
     def apply_config(self):
+        # file config
         self.input_path_var.set(self.config_dict["inputPath"])
         self.output_name_var.set(self.config_dict["outputName"])
         self.output_dir_var.set(self.config_dict["outputDir"])
-
+        # obfuscation type config
         self.controlflow_var.set(self.config_dict["obfuscationType"][0]["controlflow"])
         self.dataflow_var.set(self.config_dict["obfuscationType"][1]["dataflow"])
         self.layout_var.set(self.config_dict["obfuscationType"][2]["layout"])
         self.deadcode_var.set(self.config_dict["obfuscationType"][3]["deadcode"])
+        # control flow config
+        self.controlflow_config_instruction_insert_var.set(self.config_dict["controlflowConfig"][0]["instructionInsert"])
+        self.controlflow_config_instruction_replace_var.set(self.config_dict["controlflowConfig"][1]["instructionReplace"])
+        self.controlflow_config_insert_opaque_predicate_var.set(self.config_dict["controlflowConfig"][2]["insertOpaquePredicate"])
+        self.controlflow_config_shuffle_code_block_var.set(self.config_dict["controlflowConfig"][3]["shuffleCodeBlock"])
 
     def get_config(self) -> dict:
+        # file config
         self.config_dict["inputPath"] = self.input_path_var.get()
         self.config_dict["outputName"] = self.output_name_var.get()
         self.config_dict["outputDir"] = self.output_dir_var.get()
-
+        # obfuscation type config
         self.config_dict["obfuscationType"][0]["controlflow"] = self.controlflow_var.get()
         self.config_dict["obfuscationType"][1]["dataflow"] = self.dataflow_var.get()
         self.config_dict["obfuscationType"][2]["layout"] = self.layout_var.get()
         self.config_dict["obfuscationType"][3]["deadcode"] = self.deadcode_var.get()
+        # control flow config
+        self.config_dict["controlflowConfig"][0]["instructionInsert"] = self.controlflow_config_instruction_insert_var.get()
+        self.config_dict["controlflowConfig"][1]["instructionReplace"] = self.controlflow_config_instruction_replace_var.get()
+        self.config_dict["controlflowConfig"][2]["insertOpaquePredicate"] = self.controlflow_config_insert_opaque_predicate_var.get()
+        self.config_dict["controlflowConfig"][3]["shuffleCodeBlock"] = self.controlflow_config_shuffle_code_block_var.get()
 
     # configuration
     def open_config_window(self):
@@ -295,8 +307,13 @@ class ObfuscationApp:
 
             # Control flow
             if self.controlflow_var.get():
+                cfoCfg = controlflowObfuscation.controlflowConfig(
+                    self.controlflow_config_instruction_insert_var.get(),
+                    self.controlflow_config_instruction_replace_var.get(),
+                    self.controlflow_config_insert_opaque_predicate_var.get(),
+                    self.controlflow_config_shuffle_code_block_var.get())
                 cfo = controlflowObfuscation.controlflowObfuscation(sol_content)
-                sol_content = cfo.run()
+                sol_content = cfo.run(cfoCfg)
 
             # Dead code（目前只是 placeholder）
             if self.deadcode_var.get():

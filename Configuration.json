@@ -7,10 +7,10 @@
             "controlflow": true
         },
         {
-            "dataflow": true
+            "dataflow": false
         },
         {
-            "layout": true
+            "layout": false
         },
         {
             "deadcode": false
@@ -23,6 +23,17 @@
         {}
     ],
     "controlflowConfig": [
-        {}
+        {
+            "instructionInsert": true
+        },
+        {
+            "instructionReplace": true
+        },
+        {
+            "insertOpaquePredicate": true
+        },
+        {
+            "shuffleCodeBlock": true
+        }
     ]
 }

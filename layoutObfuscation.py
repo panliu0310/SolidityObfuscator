@@ -170,6 +170,7 @@ class layoutObfuscation:
         """
         
         try:
+            code = self.code
             code = self.remove_comments(code)
             code = self.random_remove_whitespace(code)
             code = self.obfuscate_variables(code)

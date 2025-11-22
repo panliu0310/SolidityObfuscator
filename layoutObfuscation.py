@@ -204,7 +204,7 @@ class layoutObfuscation:
 
         return "".join(result_chars).strip()
     
-    def run(self):
+    def run(self, config: layoutConfig):
         """
         Apply layout obfuscation
         :param code: Input code
@@ -213,13 +213,19 @@ class layoutObfuscation:
         
         try:
             code = self.code
-            code = self.remove_comments(code)
+            if config.remove_comments_config:
+                code = self.remove_comments(code)
             # code = self.random_remove_whitespace(code) # duplicate function from minify_code
-            code = self.obfuscate_variables(code)
-            code = self.obfuscate_mappings(code)
-            code = self.obfuscate_vectors(code)
-            code = self.obfuscate_functions(code)
-            code = self.minify_code(code)
+            if config.obfuscate_variables_config:
+                code = self.obfuscate_variables(code)
+            if config.obfuscate_mappings_config:
+                code = self.obfuscate_mappings(code)
+            if config.obfuscate_vectors_config:
+                code = self.obfuscate_vectors(code)
+            if config.obfuscate_functions_config:
+                code = self.obfuscate_functions(code)
+            if config.minify_code_config:
+                code = self.minify_code(code)
             return code
         except Exception as e:
             print(f"Error during obfuscation: {e}")

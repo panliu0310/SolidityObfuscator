@@ -476,7 +476,7 @@ class ObfuscationApp:
                 lo = layoutObfuscation.layoutObfuscation(sol_content)
                 sol_content = lo.run(loCfg)
 
-            # Dead code（目前只是 placeholder）
+            # Dead code
             if self.deadcode_var.get():
                 dco = deadcodeObfuscation.deadcodeObfuscation(sol_content)
                 sol_content = dco.run()

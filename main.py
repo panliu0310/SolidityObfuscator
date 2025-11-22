@@ -31,6 +31,13 @@ class ObfuscationApp:
         self.controlflow_config_instruction_replace_var = tk.BooleanVar(value=True)
         self.controlflow_config_insert_opaque_predicate_var = tk.BooleanVar(value=True)
         self.controlflow_config_shuffle_code_block_var = tk.BooleanVar(value=True)
+        # configuration -> layout configuration
+        self.layout_config_remove_comments_var = tk.BooleanVar(value=True)
+        self.layout_config_obfuscate_variables_var = tk.BooleanVar(value=True)
+        self.layout_config_obfuscate_mappings_var = tk.BooleanVar(value=True)
+        self.layout_config_obfuscate_vectors_var = tk.BooleanVar(value=True)
+        self.layout_config_obfuscate_functions_var = tk.BooleanVar(value=True)
+        self.layout_config_minify_code_var = tk.BooleanVar(value=True)
 
         # UI
         self._build_ui()
@@ -165,6 +172,13 @@ class ObfuscationApp:
         self.controlflow_config_instruction_replace_var.set(self.config_dict["controlflowConfig"][1]["instructionReplace"])
         self.controlflow_config_insert_opaque_predicate_var.set(self.config_dict["controlflowConfig"][2]["insertOpaquePredicate"])
         self.controlflow_config_shuffle_code_block_var.set(self.config_dict["controlflowConfig"][3]["shuffleCodeBlock"])
+        # layout config
+        self.layout_config_remove_comments_var.set(self.config_dict["layoutConfig"][0]["removeComments"])
+        self.layout_config_obfuscate_variables_var.set(self.config_dict["layoutConfig"][1]["obfuscateVariables"])
+        self.layout_config_obfuscate_mappings_var.set(self.config_dict["layoutConfig"][2]["obfuscateMappings"])
+        self.layout_config_obfuscate_vectors_var.set(self.config_dict["layoutConfig"][3]["obfuscateVectors"])
+        self.layout_config_obfuscate_functions_var.set(self.config_dict["layoutConfig"][4]["obfuscateFunctions"])
+        self.layout_config_minify_code_var.set(self.config_dict["layoutConfig"][5]["minifyCode"])
 
     def get_config(self) -> dict:
         # file config
@@ -181,12 +195,19 @@ class ObfuscationApp:
         self.config_dict["controlflowConfig"][1]["instructionReplace"] = self.controlflow_config_instruction_replace_var.get()
         self.config_dict["controlflowConfig"][2]["insertOpaquePredicate"] = self.controlflow_config_insert_opaque_predicate_var.get()
         self.config_dict["controlflowConfig"][3]["shuffleCodeBlock"] = self.controlflow_config_shuffle_code_block_var.get()
+        # layout config
+        self.config_dict["layoutConfig"][0]["removeComments"] = self.layout_config_remove_comments_var.get()
+        self.config_dict["layoutConfig"][1]["obfuscateVariables"] = self.layout_config_obfuscate_variables_var.get()
+        self.config_dict["layoutConfig"][2]["obfuscateMappings"] = self.layout_config_obfuscate_mappings_var.get()
+        self.config_dict["layoutConfig"][3]["obfuscateVectors"] = self.layout_config_obfuscate_vectors_var.get()
+        self.config_dict["layoutConfig"][4]["obfuscateFunctions"] = self.layout_config_obfuscate_functions_var.get()
+        self.config_dict["layoutConfig"][5]["minifyCode"] = self.layout_config_minify_code_var.get()
 
     # configuration
     def open_config_window(self):
         config_window = tk.Toplevel(self.root)  # Link to the main window
         config_window.title("Configuration Window")
-        config_window.geometry("300x200")  # Set dimensions
+        config_window.geometry("300x400")  # Set dimensions
 
         lbl_control_flow = tk.Label(config_window, text="Control flow configurations:")
         lbl_control_flow.grid(row=0, column=0, pady=(10, 0), sticky="nw")
@@ -221,6 +242,54 @@ class ObfuscationApp:
             variable=self.controlflow_config_shuffle_code_block_var,
         )
         chk_controlflow_shuffle_code_block.grid(row=3, column=0, sticky="w")
+
+        lbl_layout_flow = tk.Label(config_window, text="layout configurations:")
+        lbl_layout_flow.grid(row=2, column=0, pady=(10, 0), sticky="nw")
+
+        layout_frame = tk.Frame(config_window)
+        layout_frame.grid(row=3, column=0, pady=(10, 0), sticky="w")
+
+        chk_layout_remove_comments = tk.Checkbutton(
+            layout_frame,
+            text="remove comment",
+            variable=self.layout_config_remove_comments_var,
+        )
+        chk_layout_remove_comments.grid(row=0, column=0, sticky="w")
+
+        chk_layout_obfuscate_variables = tk.Checkbutton(
+            layout_frame,
+            text="obfuscate variables",
+            variable=self.layout_config_obfuscate_variables_var,
+        )
+        chk_layout_obfuscate_variables.grid(row=1, column=0, sticky="w")
+
+        chk_layout_obfuscate_mappings = tk.Checkbutton(
+            layout_frame,
+            text="obfuscate mappings",
+            variable=self.layout_config_obfuscate_mappings_var,
+        )
+        chk_layout_obfuscate_mappings.grid(row=2, column=0, sticky="w")
+
+        chk_layout_obfuscate_vectors = tk.Checkbutton(
+            layout_frame,
+            text="obfuscate vectors",
+            variable=self.layout_config_obfuscate_vectors_var,
+        )
+        chk_layout_obfuscate_vectors.grid(row=3, column=0, sticky="w")
+
+        chk_layout_obfuscate_functions = tk.Checkbutton(
+            layout_frame,
+            text="obfuscate functions",
+            variable=self.layout_config_obfuscate_functions_var,
+        )
+        chk_layout_obfuscate_functions.grid(row=4, column=0, sticky="w")
+
+        chk_layout_minify_code = tk.Checkbutton(
+            layout_frame,
+            text="minify code",
+            variable=self.layout_config_minify_code_var,
+        )
+        chk_layout_minify_code.grid(row=5, column=0, sticky="w")
 
     # handleling
 

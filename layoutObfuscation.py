@@ -1,11 +1,28 @@
 import re
 import random
 import string
+from typing import List
 
 def generate_random_name(length=0):
     if length == 0:
         length = random.randrange(8, 16)
     return random.choice(string.ascii_lowercase) + ''.join(random.choices(string.ascii_letters + string.digits, k=length-1))
+
+class layoutConfig:
+    remove_comments_config: bool
+    obfuscate_variables_config: bool
+    obfuscate_mappings_config: bool
+    obfuscate_vectors_config: bool
+    obfuscate_functions_config: bool
+    minify_code_config: bool
+    
+    def __init__(self, _remove_comments, _obfuscate_variables, _obfuscate_mappings, _obfuscate_vectors, _obfuscate_functions, _minify_code):
+        self.remove_comments_config = _remove_comments
+        self.obfuscate_variables_config = _obfuscate_variables
+        self.obfuscate_mappings_config = _obfuscate_mappings
+        self.obfuscate_vectors_config = _obfuscate_vectors
+        self.obfuscate_functions_config = _obfuscate_functions
+        self.minify_code_config = _minify_code
 
 class layoutObfuscation:
     """Layout Obfuscator"""
@@ -162,6 +179,31 @@ class layoutObfuscation:
 
         return code
 
+    def minify_code(code: str) -> str:
+        code = "".join(line.strip() for line in code.splitlines())
+
+        result_chars: List[str] = []
+        prev_char = ""
+        space_pending = False
+
+        separators = set("{}();,=:+-*/<>!&|[]")
+
+        for ch in code:
+            if ch.isspace():
+                space_pending = True
+                continue
+
+            if space_pending:
+                if (prev_char and prev_char not in separators) and (ch not in separators):
+                    result_chars.append(" ")
+                    prev_char = " "
+                space_pending = False
+
+            result_chars.append(ch)
+            prev_char = ch
+
+        return "".join(result_chars).strip()
+    
     def run(self):
         """
         Apply layout obfuscation
@@ -172,11 +214,12 @@ class layoutObfuscation:
         try:
             code = self.code
             code = self.remove_comments(code)
-            code = self.random_remove_whitespace(code)
+            # code = self.random_remove_whitespace(code) # duplicate function from minify_code
             code = self.obfuscate_variables(code)
             code = self.obfuscate_mappings(code)
             code = self.obfuscate_vectors(code)
             code = self.obfuscate_functions(code)
+            code = self.minify_code(code)
             return code
         except Exception as e:
             print(f"Error during obfuscation: {e}")

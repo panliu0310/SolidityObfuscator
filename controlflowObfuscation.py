@@ -25,7 +25,7 @@ class controlflowObfuscation:
 
     def run(self, config: controlflowConfig) -> str:
         code = self.code
-        code = self.remove_comments(code)
+        #code = self.remove_comments(code) # duplicated function in layout obfuscator
         if config.instruction_insert_config:
             code = self.instruction_insert(code)
         #code = self.instruction_replace(code)
@@ -34,9 +34,10 @@ class controlflowObfuscation:
             code = self.insert_opaque_true_in_if(code)
         if config.shuffle_code_blocks_config:
             code = self.shuffle_code_blocks(code)
-        code = self.minify_code(code)
+        #code = self.minify_code(code) # moved to layout obfuscator
         return code
         
+	#  duplicated function in layout obfuscator
     #  Comment remove
     @staticmethod
     def remove_comments(code: str) -> str:

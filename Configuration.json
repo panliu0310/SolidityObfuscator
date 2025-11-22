@@ -17,7 +17,24 @@
         }
     ],
     "layoutConfig": [
-        {}
+        {
+            "removeComments": true
+        },
+        {
+            "obfuscateVariables": true
+        },
+        {
+            "obfuscateMappings": true
+        },
+        {
+            "obfuscateVectors": true
+        },
+        {
+            "obfuscateFunctions": true
+        },
+        {
+            "minifyCode": true
+        }
     ],
     "dataflowConfig": [
         {}

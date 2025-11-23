@@ -1,21 +1,32 @@
 import random
 import re
-import ast
-from typing import List, Dict, Set, Any
-import string
 
-class EnhancedDataflowObfuscator:
+class dataflowConfig:
+    scalar_to_struct_config: bool
+    promote_local_to_global_config: bool
+    constants_to_dynamic_arrays_config: bool
+    split_boolean_expressions_config: bool
+    constants_to_arithmetic_config: bool
+    
+    def __init__(self, _scalar_to_struct, _promote_local_to_global, _constants_to_dynamic_arrays, _split_boolean_expressions, _constants_to_arithmetic):
+        self.scalar_to_struct_config = _scalar_to_struct
+        self.promote_local_to_global_config = _promote_local_to_global
+        self.constants_to_dynamic_arrays_config = _constants_to_dynamic_arrays
+        self.split_boolean_expressions_config = _split_boolean_expressions
+        self.constants_to_arithmetic_config = _constants_to_arithmetic
+
+class dataflowObfuscation:
     """
     增强版数据流混淆器
     """
     
-    def __init__(self):
+    def __init__(self, code):
+        self.code = code
         self.temp_variable_counter = 0
         self.global_variables = set()
         self.struct_counter = 0
         self.dynamic_arrays = {}
         self.constant_mappings = {}
-
         
     def generate_temp_name(self):
         """生成临时变量名"""
@@ -371,31 +382,37 @@ class EnhancedDataflowObfuscator:
         
         return code
     
-    def obfuscate(self, code):
+    def obfuscate(self, config: dataflowConfig):
         """
         应用所有混淆技术
         """
         print("开始数据流混淆...")
+        code = self.code
         
         # 1. 标量变量转为结构体
-        print("将标量变量转为结构体...")
-        code = self.scalar_to_struct(code)
+        if config.scalar_to_struct_config:
+            print("将标量变量转为结构体...")
+            code = self.scalar_to_struct(code)
         
-        # # 2. 局部变量提升为全局变量
-        # print("提升局部变量为全局变量...")
-        # code = self.promote_local_to_global(code)
+        # 2. 局部变量提升为全局变量
+        if config.promote_local_to_global_config:
+            print("提升局部变量为全局变量...")
+            code = self.promote_local_to_global(code)
         
         # 3. 常量转换为动态数据
-        print("将常量转为动态数据...")
-        code = self.constants_to_dynamic_arrays(code)
+        if config.constants_to_dynamic_arrays_config:
+            print("将常量转为动态数据...")
+            code = self.constants_to_dynamic_arrays(code)
         
         # 4. 拆分布尔表达式
-        print("拆分布尔表达式...")
-        code = self.split_boolean_expressions(code)
+        if config.split_boolean_expressions_config:
+            print("拆分布尔表达式...")
+            code = self.split_boolean_expressions(code)
         
         # 5. 常量转换为算术表达式（原有的）
-        print("常量转换为算术表达式...")
-        code = self.constants_to_arithmetic(code)
+        if config.constants_to_arithmetic_config:
+            print("常量转换为算术表达式...")
+            code = self.constants_to_arithmetic(code)
         
         print("数据流混淆完成!")
         return code

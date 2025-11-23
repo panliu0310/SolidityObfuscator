@@ -32,6 +32,9 @@ class ObfuscationApp:
         self.controlflow_config_instruction_replace_var = tk.BooleanVar(value=True)
         self.controlflow_config_insert_opaque_predicate_var = tk.BooleanVar(value=True)
         self.controlflow_config_shuffle_code_block_var = tk.BooleanVar(value=True)
+        # configuration -> deadcode configuration
+        self.deadcode_config_insert_deadcode_helper_var = tk.BooleanVar(value=True)
+        self.deadcode_config_insert_bogus_blocks_var = tk.BooleanVar(value=True)
         # configuration -> dataflow configuration
         self.dataflow_config_scalar_to_struct_var = tk.BooleanVar(value=True)
         self.dataflow_config_promote_local_to_global_var = tk.BooleanVar(value=True)
@@ -125,26 +128,26 @@ class ObfuscationApp:
         )
         chk_controlflow.grid(row=0, column=0, sticky="w")
 
+        chk_deadcode = tk.Checkbutton(
+            types_frame,
+            text="Dead Code Obfuscation",
+            variable=self.deadcode_var,
+        )
+        chk_deadcode.grid(row=1, column=0, sticky="w")
+
         chk_dataflow = tk.Checkbutton(
             types_frame,
             text="Data Flow Obfuscation",
             variable=self.dataflow_var,
         )
-        chk_dataflow.grid(row=1, column=0, sticky="w")
+        chk_dataflow.grid(row=2, column=0, sticky="w")
 
         chk_layout = tk.Checkbutton(
             types_frame,
             text="Layout Obfuscation",
             variable=self.layout_var,
         )
-        chk_layout.grid(row=2, column=0, sticky="w")
-
-        chk_deadcode = tk.Checkbutton(
-            types_frame,
-            text="Dead Code Obfuscation",
-            variable=self.deadcode_var,
-        )
-        chk_deadcode.grid(row=3, column=0, sticky="w")
+        chk_layout.grid(row=3, column=0, sticky="w")
 
         btn_edit_config = tk.Button(
             frame,
@@ -179,6 +182,9 @@ class ObfuscationApp:
         self.controlflow_config_instruction_replace_var.set(self.config_dict["controlflowConfig"][1]["instructionReplace"])
         self.controlflow_config_insert_opaque_predicate_var.set(self.config_dict["controlflowConfig"][2]["insertOpaquePredicate"])
         self.controlflow_config_shuffle_code_block_var.set(self.config_dict["controlflowConfig"][3]["shuffleCodeBlock"])
+        # deadcode config
+        self.deadcode_config_insert_deadcode_helper_var.set(self.config_dict["deadcodeConfig"][0]["insertDeadcodeHelper"])
+        self.deadcode_config_insert_bogus_blocks_var.set(self.config_dict["deadcodeConfig"][1]["insertBogusBlocks"])
         # data flow config
         self.dataflow_config_scalar_to_struct_var.set(self.config_dict["dataflowConfig"][0]["scalarToStruct"])
         self.dataflow_config_promote_local_to_global_var.set(self.config_dict["dataflowConfig"][1]["promoteLocalToGlobal"])
@@ -208,6 +214,9 @@ class ObfuscationApp:
         self.config_dict["controlflowConfig"][1]["instructionReplace"] = self.controlflow_config_instruction_replace_var.get()
         self.config_dict["controlflowConfig"][2]["insertOpaquePredicate"] = self.controlflow_config_insert_opaque_predicate_var.get()
         self.config_dict["controlflowConfig"][3]["shuffleCodeBlock"] = self.controlflow_config_shuffle_code_block_var.get()
+        # deadcode config
+        self.config_dict["deadcodeConfig"][0]["insertDeadcodeHelper"] = self.deadcode_config_insert_deadcode_helper_var.get()
+        self.config_dict["deadcodeConfig"][1]["insertBogusBlocks"] = self.deadcode_config_insert_bogus_blocks_var.get()
         # data flow config
         self.config_dict["dataflowConfig"][0]["scalarToStruct"] = self.dataflow_config_scalar_to_struct_var.get()
         self.config_dict["dataflowConfig"][1]["promoteLocalToGlobal"] = self.dataflow_config_promote_local_to_global_var.get()
@@ -229,7 +238,7 @@ class ObfuscationApp:
         config_window.geometry("400x600")  # Set dimensions
 
         # control flow label
-        lbl_control_flow = tk.Label(config_window, text="Control flow configurations:")
+        lbl_control_flow = tk.Label(config_window, text="control flow configurations:")
         lbl_control_flow.grid(row=0, column=0, pady=(10, 0), sticky="nw")
 
         # control flow frame
@@ -264,13 +273,35 @@ class ObfuscationApp:
         )
         chk_controlflow_shuffle_code_block.grid(row=3, column=0, sticky="w")
 
+        # deadcode label
+        lbl_dead_code = tk.Label(config_window, text="dead code configurations:")
+        lbl_dead_code.grid(row=2, column=0, pady=(10, 0), sticky="nw")
+
+        # deadcode frame
+        deadcode_frame = tk.Frame(config_window)
+        deadcode_frame.grid(row=3, column=0, pady=(10, 0), sticky="w")
+
+        chk_deadcode_insert_deadcode_helper = tk.Checkbutton(
+            deadcode_frame,
+            text="insert deadcode helper",
+            variable=self.deadcode_config_insert_deadcode_helper_var,
+        )
+        chk_deadcode_insert_deadcode_helper.grid(row=0, column=0, sticky="w")
+
+        chk_deadcode_insert_bogus_blocks = tk.Checkbutton(
+            deadcode_frame,
+            text="insert bogus blocks",
+            variable=self.deadcode_config_insert_bogus_blocks_var,
+        )
+        chk_deadcode_insert_bogus_blocks.grid(row=1, column=0, sticky="w")
+
         # data flow label
         lbl_data_flow = tk.Label(config_window, text="dataflow configurations:")
-        lbl_data_flow.grid(row=2, column=0, pady=(10, 0), sticky="nw")
+        lbl_data_flow.grid(row=4, column=0, pady=(10, 0), sticky="nw")
 
         # data flow frame
         dataflow_frame = tk.Frame(config_window)
-        dataflow_frame.grid(row=3, column=0, pady=(10, 0), sticky="w")
+        dataflow_frame.grid(row=5, column=0, pady=(10, 0), sticky="w")
 
         chk_dataflow_scalar_to_struct = tk.Checkbutton(
             dataflow_frame,
@@ -309,11 +340,11 @@ class ObfuscationApp:
 
         # layout label
         lbl_layout = tk.Label(config_window, text="layout configurations:")
-        lbl_layout.grid(row=4, column=0, pady=(10, 0), sticky="nw")
+        lbl_layout.grid(row=6, column=0, pady=(10, 0), sticky="nw")
 
         # layout frame
         layout_frame = tk.Frame(config_window)
-        layout_frame.grid(row=5, column=0, pady=(10, 0), sticky="w")
+        layout_frame.grid(row=7, column=0, pady=(10, 0), sticky="w")
 
         chk_layout_remove_comments = tk.Checkbutton(
             layout_frame,
@@ -451,6 +482,16 @@ class ObfuscationApp:
                 cfo = controlflowObfuscation.controlflowObfuscation(sol_content)
                 sol_content = cfo.run(cfoCfg)
 
+            # Dead code
+            if self.deadcode_var.get():
+                dcCfg = deadcodeObfuscation.deadcodeConfig(
+                    self.deadcode_config_insert_deadcode_helper_var.get(),
+                    self.deadcode_config_insert_bogus_blocks_var.get()
+                )
+                dco = deadcodeObfuscation.deadcodeObfuscation(sol_content)
+                sol_content = dco.run(dcCfg)
+                pass
+
             # Data flow
             if self.dataflow_var.get():
                 dfoCfg = dataflowObfuscation.dataflowConfig(
@@ -475,12 +516,6 @@ class ObfuscationApp:
                 )
                 lo = layoutObfuscation.layoutObfuscation(sol_content)
                 sol_content = lo.run(loCfg)
-
-            # Dead code
-            if self.deadcode_var.get():
-                dco = deadcodeObfuscation.deadcodeObfuscation(sol_content)
-                sol_content = dco.run()
-                pass
 
             # add the pragma statement back
             sol_content = pragma_statement + sol_content

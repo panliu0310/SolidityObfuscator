@@ -7,7 +7,7 @@
             "controlflow": true
         },
         {
-            "dataflow": false
+            "dataflow": true
         },
         {
             "layout": false
@@ -18,22 +18,30 @@
     ],
     "layoutConfig": [
         {
-            "removeComments": true
+            "removeComments": false
         },
         {
-            "obfuscateVariables": true
+            "obfuscateVariables": false
         },
         {
-            "obfuscateMappings": true
+            "obfuscateMappings": false
         },
         {
-            "obfuscateVectors": true
+            "obfuscateVectors": false
         },
         {
-            "obfuscateFunctions": true
+            "obfuscateFunctions": false
         },
         {
-            "minifyCode": true
+            "minifyCode": false
+        }
+    ],
+    "deadcodeConfig": [
+        {
+            "insertDeadcodeHelper": true
+        },
+        {
+            "insertBogusBlocks": true
         }
     ],
     "dataflowConfig": [
@@ -44,13 +52,13 @@
             "promoteLocalToGlobal": true
         },
         {
-            "constantsToDynamicArrays": true
+            "constantsToDynamicArrays": false
         },
         {
             "splitBooleanExpressions": true
         },
         {
-            "constantsToArithmetic": true
+            "constantsToArithmetic": false
         }
     ],
     "controlflowConfig": [

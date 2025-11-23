@@ -1,5 +1,12 @@
 from typing import List
 
+class deadcodeConfig:
+    insert_deadcode_helper_config: bool
+    insert_bogus_blocks_config: bool
+
+    def __init__(self, _insert_deadcode_helper_config, _insert_bogus_blocks_config):
+        self.insert_deadcode_helper_config = _insert_deadcode_helper_config
+        self.insert_bogus_blocks_config = _insert_bogus_blocks_config
 
 class deadcodeObfuscation:
 
@@ -7,10 +14,12 @@ class deadcodeObfuscation:
         self.solContent = solContent
 
 
-    def run(self) -> str:
+    def run(self, config: deadcodeConfig) -> str:
         code = self.solContent
-        code = self._insert_deadcode_helper(code)
-        code = self._insert_bogus_blocks_into_functions(code)
+        if config.insert_deadcode_helper_config:
+            code = self._insert_deadcode_helper(code)
+        if config.insert_bogus_blocks_config:
+            code = self._insert_bogus_blocks_into_functions(code)
         return code
 
     # helper

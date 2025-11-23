@@ -1,32 +1,21 @@
 import random
 import re
+import ast
+from typing import List, Dict, Set, Any
+import string
 
-class dataflowConfig:
-    scalar_to_struct_config: bool
-    promote_local_to_global_config: bool
-    constants_to_dynamic_arrays_config: bool
-    split_boolean_expressions_config: bool
-    constants_to_arithmetic_config: bool
-    
-    def __init__(self, _scalar_to_struct, _promote_local_to_global, _constants_to_dynamic_arrays, _split_boolean_expressions, _constants_to_arithmetic):
-        self.scalar_to_struct_config = _scalar_to_struct
-        self.promote_local_to_global_config = _promote_local_to_global
-        self.constants_to_dynamic_arrays_config = _constants_to_dynamic_arrays
-        self.split_boolean_expressions_config = _split_boolean_expressions
-        self.constants_to_arithmetic_config = _constants_to_arithmetic
-
-class dataflowObfuscation:
+class EnhancedDataflowObfuscator:
     """
     增强版数据流混淆器
     """
     
-    def __init__(self, code):
-        self.code = code
+    def __init__(self):
         self.temp_variable_counter = 0
         self.global_variables = set()
         self.struct_counter = 0
         self.dynamic_arrays = {}
         self.constant_mappings = {}
+
         
     def generate_temp_name(self):
         """生成临时变量名"""
@@ -73,74 +62,74 @@ class dataflowObfuscation:
         
         return variables
     
-    def promote_local_to_global(self, code):
-        """
-        将局部变量提升为全局变量
-        """
-        lines = code.split('\n')
-        result_lines = []
-        global_declarations = []
+    # def promote_local_to_global(self, code):
+    #     """
+    #     将局部变量提升为全局变量
+    #     """
+    #     lines = code.split('\n')
+    #     result_lines = []
+    #     global_declarations = []
         
-        i = 0
-        while i < len(lines):
-            line = lines[i]
+    #     i = 0
+    #     while i < len(lines):
+    #         line = lines[i]
             
-            # 跳过pure/view函数
-            if any(keyword in line for keyword in ['function', 'function(']):
-                # 简单的函数边界检测
-                func_start = i
-                func_lines = [line]
-                i += 1
+    #         # 跳过pure/view函数
+    #         if any(keyword in line for keyword in ['function', 'function(']):
+    #             # 简单的函数边界检测
+    #             func_start = i
+    #             func_lines = [line]
+    #             i += 1
                 
-                # 收集整个函数
-                brace_count = line.count('{') - line.count('}')
-                while i < len(lines) and brace_count > 0:
-                    func_lines.append(lines[i])
-                    brace_count += lines[i].count('{') - lines[i].count('}')
-                    i += 1
+    #             # 收集整个函数
+    #             brace_count = line.count('{') - line.count('}')
+    #             while i < len(lines) and brace_count > 0:
+    #                 func_lines.append(lines[i])
+    #                 brace_count += lines[i].count('{') - lines[i].count('}')
+    #                 i += 1
                 
-                func_code = '\n'.join(func_lines)
+    #             func_code = '\n'.join(func_lines)
                 
-                # 如果不是pure/view函数，处理局部变量提升
-                if not self.is_pure_or_view_function(func_code, 0):
-                    variables = self.extract_local_variables(func_code)
-                    modified_func = func_code
+    #             # 如果不是pure/view函数，处理局部变量提升
+    #             if not self.is_pure_or_view_function(func_code, 0):
+    #                 variables = self.extract_local_variables(func_code)
+    #                 modified_func = func_code
                     
-                    for var_info in reversed(variables):  # 反向处理避免位置偏移
-                        var_name = f"global_{var_info['name']}"
-                        global_decl = f"{var_info['type']} private {var_name};"
-                        global_declarations.append(global_decl)
+    #                 for var_info in reversed(variables):  # 反向处理避免位置偏移
+    #                     var_name = f"global_{var_info['name']}"
+    #                     global_decl = f"{var_info['type']} private {var_name};"
+    #                     global_declarations.append(global_decl)
                         
-                        # 替换函数内的变量声明为赋值
-                        old_declaration = var_info['full_match']
-                        if var_info['type'] != 'var':
-                            new_assignment = f"{var_name} = {old_declaration.split('=')[1].strip()}"
-                        else:
-                            new_assignment = f"{var_name} = {old_declaration.split('=')[1].strip()}"
+    #                     # 替换函数内的变量声明为赋值
+    #                     old_declaration = var_info['full_match']
+    #                     if var_info['type'] != 'var':
+    #                         new_assignment = f"{var_name} = {old_declaration.split('=')[1].strip()}"
+    #                     else:
+    #                         new_assignment = f"{var_name} = {old_declaration.split('=')[1].strip()}"
                         
-                        modified_func = (modified_func[:var_info['start']] + 
-                                       new_assignment + 
-                                       modified_func[var_info['end']:])
+    #                     modified_func = (modified_func[:var_info['start']] + 
+    #                                    new_assignment + 
+    #                                    modified_func[var_info['end']:])
                     
-                    result_lines.extend(modified_func.split('\n'))
-                else:
-                    result_lines.extend(func_lines)
-            else:
-                result_lines.append(line)
-                i += 1
+    #                 result_lines.extend(modified_func.split('\n'))
+    #             else:
+    #                 result_lines.extend(func_lines)
+    #         else:
+    #             result_lines.append(line)
+    #             i += 1
         
-        # 在合约开头插入全局变量声明
-        if global_declarations:
-            contract_start = -1
-            for i, line in enumerate(result_lines):
-                if 'contract' in line and '{' in line:
-                    contract_start = i + 1
-                    break
+    #     # 在合约开头插入全局变量声明
+    #     if global_declarations:
+    #         contract_start = -1
+    #         for i, line in enumerate(result_lines):
+    #             if 'contract' in line and '{' in line:
+    #                 contract_start = i + 1
+    #                 break
             
-            if contract_start != -1:
-                result_lines[contract_start:contract_start] = ['    ' + decl for decl in global_declarations]
+    #         if contract_start != -1:
+    #             result_lines[contract_start:contract_start] = ['    ' + decl for decl in global_declarations]
         
-        return '\n'.join(result_lines)
+    #     return '\n'.join(result_lines)
     
     def create_complex_arithmetic(self, value):
         """
@@ -170,10 +159,22 @@ class dataflowObfuscation:
     
     def constants_to_dynamic_arrays(self, code):
         """
-        将常量替换为动态数组访问
+        将常量替换为动态数组访问，确保函数只添加一次
         """
-        # 识别数字常量
+        # 如果已经添加过动态函数，只进行常量替换
+        if hasattr(self, '_dynamic_function_added') and self._dynamic_function_added:
+            return self._process_existing_constants(code)
+        
+        # 第一次调用，进行完整处理
         def replace_constant(match):
+            """
+            替换数字常量为动态数组访问
+            """
+            # 检查是否在pragma语句中，避免修改版本号
+            line_up_to_match = code[:match.start()]
+            if 'pragma solidity' in line_up_to_match.split('\n')[-1]:
+                return match.group()
+            
             value = int(match.group())
             
             # 为每个值创建唯一的数组和索引
@@ -184,55 +185,153 @@ class dataflowObfuscation:
                 self.dynamic_arrays[array_name] = value
             
             array_name, index = self.constant_mappings[value]
-            return f"getDynamicValue(\"{array_name}\", {index})"
+            return f'getDynamicValue("{array_name}", {index})'
         
-        # 替换数字常量
+        # 替换所有数字常量
         code = re.sub(r'\b\d+\b', replace_constant, code)
         
-        # 添加动态数组访问函数
-        if self.dynamic_arrays:
-            dynamic_function = '''
-    function getDynamicValue(string memory arrayName, uint index) private pure returns (uint) {
-        bytes32 arrayHash = keccak256(abi.encodePacked(arrayName));
-        if (arrayHash == keccak256(abi.encodePacked("dataArray_0"))) return %d;
-        ''' % list(self.dynamic_arrays.values())[0]
+        # 如果有动态数组需要处理，且是第一次调用，添加函数
+        if self.dynamic_arrays and not hasattr(self, '_dynamic_function_added'):
+            dynamic_function = self._generate_dynamic_function()
             
-            for i, (name, value) in enumerate(self.dynamic_arrays.items()):
-                if i > 0:
-                    dynamic_function += f'else if (arrayHash == keccak256(abi.encodePacked("{name}"))) return {value};'
-            
-            dynamic_function += 'return 0;}'
-            
-            # 找到合约结束位置插入函数
+            # 在合约结束前插入函数
             code = code.replace('}', dynamic_function + '\n}')
+            
+            # 设置标志位，标记函数已添加
+            self._dynamic_function_added = True
         
         return code
-    
+
+    def _process_existing_constants(self, code):
+        """
+        只处理常量替换，不添加函数（用于后续调用）
+        """
+        def replace_constant(match):
+            """
+            替换已映射的常量，新常量保持原样
+            """
+            # 检查是否在pragma语句中
+            line_up_to_match = code[:match.start()]
+            if 'pragma solidity' in line_up_to_match.split('\n')[-1]:
+                return match.group()
+            
+            value = int(match.group())
+            
+            # 只替换已经映射过的常量
+            if value in self.constant_mappings:
+                array_name, index = self.constant_mappings[value]
+                return f'getDynamicValue("{array_name}", {index})'
+            
+            # 新出现的常量保持原样
+            return match.group()
+        
+        return re.sub(r'\b\d+\b', replace_constant, code)
+
+    def _generate_dynamic_function(self):
+        """
+        生成动态数组访问函数
+        """
+        if not self.dynamic_arrays:
+            return ""
+        
+        # 构建函数基础结构
+        dynamic_function = '''
+        function getDynamicValue(string memory arrayName, uint index) private pure returns (uint) {
+            bytes32 arrayHash = keccak256(abi.encodePacked(arrayName));'''
+        
+        # 添加条件判断
+        conditions = []
+        for i, (name, value) in enumerate(self.dynamic_arrays.items()):
+            condition = f'        if (arrayHash == keccak256(abi.encodePacked("{name}"))) return {value};'
+            conditions.append(condition)
+        
+        # 合并所有条件
+        dynamic_function += '\n' + '\n'.join(conditions)
+        dynamic_function += '\n        return 0;\n    }'
+        
+        return dynamic_function
+
+    def reset_dynamic_arrays(self):
+        """
+        重置动态数组状态，允许重新开始处理
+        """
+        self.constant_mappings = {}
+        self.dynamic_arrays = {}
+        if hasattr(self, '_dynamic_function_added'):
+            delattr(self, '_dynamic_function_added')
+
+    # def split_boolean_expressions(self, code):
+    #     """
+    #     拆分布尔表达式
+    #     """
+    #     # 替换true/false为复杂表达式
+    #     replacements = {
+    #     'true': '(true || false) && true',
+    #     'false': '(true && false) || false',
+    #         '== true': '!= false',
+    #         '== false': '!= true'
+    #     }
+            
+    #     for old, new in replacements.items():
+    #         code = code.replace(old, new)
+            
+    #     # 将简单布尔比较转换为复杂表达式
+    #     comparisons = [
+    #         (r'(\w+)\s*==\s*(\w+)', r'(\1 == \2) && (!(\1 != \2))'),
+    #         (r'(\w+)\s*!=\s*(\w+)', r'(\1 != \2) || (!(\1 == \2))'),
+    #         (r'(\w+)\s*>\s*(\w+)', r'(\1 > \2) && (\1 >= \2 + 1)'),
+    #         (r'(\w+)\s*<\s*(\w+)', r'(\1 < \2) && (\1 <= \2 - 1)')
+    #     ]
+            
+    #     for pattern, replacement in comparisons:
+    #         code = re.sub(pattern, replacement, code)
+            
+    #     return code
+
     def split_boolean_expressions(self, code):
         """
-        拆分布尔表达式
+        拆分布尔表达式，避免类型错误
         """
-        # 替换true/false为复杂表达式
-        replacements = {
-            'true': '(true || false) && true',
-            'false': '(true && false) || false',
-            '== true': '!= false',
-            '== false': '!= true'
-        }
+        def safe_replace_boolean(match):
+            """
+            安全地替换布尔表达式，避免类型冲突
+            """
+            left, operator, right = match.groups()
+            
+            # 检查是否是数值比较
+            left_is_num = left.isdigit()
+            right_is_num = right.isdigit()
+            
+            if operator == '==':
+                return f'(({left} == {right}) && (!({left} != {right})))'
+            elif operator == '!=':
+                return f'(({left} != {right}) && (!({left} == {right})))'
+            elif operator == '>':
+                if left_is_num and right_is_num:
+                    return f'(({left} > {right}) && ({left} >= {int(right) + 1}))'
+                else:
+                    return f'(({left} > {right}) && (!({left} <= {right})))'
+            elif operator == '<':
+                if left_is_num and right_is_num:
+                    return f'(({left} < {right}) && ({left} <= {int(right) - 1}))'
+                else:
+                    return f'(({left} < {right}) && (!({left} >= {right})))'
+            elif operator == '>=':
+                return f'(({left} >= {right}) && (({left} > {right}) || ({left} == {right})))'
+            elif operator == '<=':
+                return f'(({left} <= {right}) && (({left} < {right}) || ({left} == {right})))'
+            
+            return match.group(0)
         
-        for old, new in replacements.items():
-            code = code.replace(old, new)
+        # 先替换true/false
+        code = code.replace('true', '(true || false) && true')
+        code = code.replace('false', '(true && false) || false')
+        code = code.replace('== true', '!= false')
+        code = code.replace('== false', '!= true')
         
-        # 将简单布尔比较转换为复杂表达式
-        comparisons = [
-            (r'(\w+)\s*==\s*(\w+)', r'(\1 == \2) && (!(\1 != \2))'),
-            (r'(\w+)\s*!=\s*(\w+)', r'(\1 != \2) || (!(\1 == \2))'),
-            (r'(\w+)\s*>\s*(\w+)', r'(\1 > \2) && (\1 >= \2 + 1)'),
-            (r'(\w+)\s*<\s*(\w+)', r'(\1 < \2) && (\1 <= \2 - 1)')
-        ]
-        
-        for pattern, replacement in comparisons:
-            code = re.sub(pattern, replacement, code)
+        # 使用更安全的模式匹配
+        comparison_pattern = r'(\b\w+\b)\s*(==|!=|>|<|>=|<=)\s*(\b\w+\b)'
+        code = re.sub(comparison_pattern, safe_replace_boolean, code)
         
         return code
     
@@ -272,37 +371,31 @@ class dataflowObfuscation:
         
         return code
     
-    def obfuscate(self, config: dataflowConfig):
+    def obfuscate(self, code):
         """
         应用所有混淆技术
         """
         print("开始数据流混淆...")
-        code = self.code
         
         # 1. 标量变量转为结构体
-        if config.scalar_to_struct_config:
-            print("将标量变量转为结构体...")
-            code = self.scalar_to_struct(code)
+        print("将标量变量转为结构体...")
+        code = self.scalar_to_struct(code)
         
-        # 2. 局部变量提升为全局变量
-        if config.promote_local_to_global_config:
-            print("提升局部变量为全局变量...")
-            code = self.promote_local_to_global(code)
+        # # 2. 局部变量提升为全局变量
+        # print("提升局部变量为全局变量...")
+        # code = self.promote_local_to_global(code)
         
         # 3. 常量转换为动态数据
-        if config.constants_to_dynamic_arrays_config:
-            print("将常量转为动态数据...")
-            code = self.constants_to_dynamic_arrays(code)
+        print("将常量转为动态数据...")
+        code = self.constants_to_dynamic_arrays(code)
         
         # 4. 拆分布尔表达式
-        if config.split_boolean_expressions_config:
-            print("拆分布尔表达式...")
-            code = self.split_boolean_expressions(code)
+        print("拆分布尔表达式...")
+        code = self.split_boolean_expressions(code)
         
         # 5. 常量转换为算术表达式（原有的）
-        if config.constants_to_arithmetic_config:
-            print("常量转换为算术表达式...")
-            code = self.constants_to_arithmetic(code)
+        print("常量转换为算术表达式...")
+        code = self.constants_to_arithmetic(code)
         
         print("数据流混淆完成!")
         return code

@@ -152,13 +152,17 @@ class dataflowObfuscation:
             return "(3 * 5 - 14)"
         
         # 多种复杂表达式生成策略
+        r_int_1 = random.randint(1, 3)
+        r_int_2 = random.randint(0, 2)
+        r_int_3 = random.randint(2, 5)
+
         strategies = [
             # 加减法组合
-            lambda v: f"(({v//2} + {v - v//2}) * {random.randint(1, 3)}) / {random.randint(1, 3)}",
+            lambda v: f"((({v//2} + {v - v//2}) * {r_int_1}) / {r_int_1})",
             # 位运算
-            lambda v: f"(({v} << {random.randint(0, 2)}) >> {random.randint(0, 2)})",
+            lambda v: f"(({v} << {r_int_2}) >> {r_int_2})",
             # 混合运算
-            lambda v: f"({v} * {random.randint(2, 5)}) / {random.randint(2, 5)} + {v % random.randint(2, 5)}"
+            lambda v: f"(({v} // {r_int_3} * {r_int_3}) + {v % r_int_3})"
         ]
         
         strategy = random.choice(strategies)
@@ -308,6 +312,10 @@ class dataflowObfuscation:
         将常量转换为复杂算术表达式
         """
         def replace_with_arithmetic(match):
+            line_up_to_match = code[:match.start()]
+            if 'pragma solidity' in line_up_to_match.split('\n')[-1]:
+                return match.group()
+            
             value = int(match.group())
             if abs(value) < 100:  # 只处理较小的数值
                 return self.create_complex_arithmetic(value)

@@ -1,5 +1,8 @@
 import random
 import re
+from SplitBoolean import SplitBooleanVariables
+from Local2Global import LocalToGlobalConverter
+from Ast_generator import *
 
 class dataflowConfig:
     scalar_to_struct_config: bool
@@ -38,40 +41,40 @@ class dataflowObfuscation:
         self.struct_counter += 1
         return f"DataStruct_{self.struct_counter}"
     
-    def is_pure_or_view_function(self, code: str, function_start: int) -> bool:
-        """
-        判断函数是否为pure或view类型
-        """
-        # 简单的关键字匹配，实际应用中应该使用完整的语法分析
-        function_header = code[function_start:function_start + 100]  # 查看函数开头部分
-        return "pure" in function_header or "view" in function_header
+    # def is_pure_or_view_function(self, code: str, function_start: int) -> bool:
+    #     """
+    #     判断函数是否为pure或view类型
+    #     """
+    #     # 简单的关键字匹配，实际应用中应该使用完整的语法分析
+    #     function_header = code[function_start:function_start + 100]  # 查看函数开头部分
+    #     return "pure" in function_header or "view" in function_header
     
-    def extract_local_variables(self, code):
-        """
-        提取局部变量信息（简化版，实际应该用完整语法分析）
-        """
-        variables = []
+    # def extract_local_variables(self, code):
+    #     """
+    #     提取局部变量信息（简化版，实际应该用完整语法分析）
+    #     """
+    #     variables = []
         
-        # 匹配局部变量声明模式
-        patterns = [
-            r'\b(uint|int|bool|address|string|bytes)\s+(\w+)\s*=\s*[^;]+;',
-            r'\b(var\s+(\w+)\s*=\s*[^;]+;)'
-        ]
+    #     # 匹配局部变量声明模式
+    #     patterns = [
+    #         r'\b(uint|int|bool|address|string|bytes)\s+(\w+)\s*=\s*[^;]+;',
+    #         r'\b(var\s+(\w+)\s*=\s*[^;]+;)'
+    #     ]
         
-        for pattern in patterns:
-            matches = re.finditer(pattern, code)
-            for match in matches:
-                var_type = match.group(1) if match.group(1) != 'var' else 'var'
-                var_name = match.group(2)
-                variables.append({
-                    'type': var_type,
-                    'name': var_name,
-                    'full_match': match.group(0),
-                    'start': match.start(),
-                    'end': match.end()
-                })
+    #     for pattern in patterns:
+    #         matches = re.finditer(pattern, code)
+    #         for match in matches:
+    #             var_type = match.group(1) if match.group(1) != 'var' else 'var'
+    #             var_name = match.group(2)
+    #             variables.append({
+    #                 'type': var_type,
+    #                 'name': var_name,
+    #                 'full_match': match.group(0),
+    #                 'start': match.start(),
+    #                 'end': match.end()
+    #             })
         
-        return variables
+    #     return variables
     
     # def promote_local_to_global(self, code):
     #     """
@@ -141,6 +144,24 @@ class dataflowObfuscation:
     #             result_lines[contract_start:contract_start] = ['    ' + decl for decl in global_declarations]
         
     #     return '\n'.join(result_lines)
+
+    # using ast to convert local to global 
+    def promote_local_to_global(self, code):
+        with open("contract.sol", "w", encoding="utf-8") as f:
+            f.write(code)
+        ast = generate_ast_from_file("contract.sol")
+        with open("contract_ast.json", "w") as f:
+            json.dump(ast, f, indent=2)
+        with open("contract.sol", "r", encoding="utf-8") as f:
+            solidity_code = f.read()
+        with open("contract_ast.json", "r",encoding="utf-8") as f:
+            ast_data = json.load(f) 
+    # Initialize converter
+        converter = LocalToGlobalConverter(solidity_code, ast_data)
+
+    # Convert local variables to global (80% probability)
+        obfuscated_code, global_vars = converter.convert_local_to_global(0.8)
+        return obfuscated_code
     
     def create_complex_arithmetic(self, value):
         """
@@ -299,52 +320,72 @@ class dataflowObfuscation:
             
     #     return code
 
+    # def split_boolean_expressions(self, code):
+    #     """
+    #     拆分布尔表达式，避免类型错误
+    #     """
+    #     def safe_replace_boolean(match):
+    #         """
+    #         安全地替换布尔表达式，避免类型冲突
+    #         """
+    #         left, operator, right = match.groups()
+            
+    #         # 检查是否是数值比较
+    #         left_is_num = left.isdigit()
+    #         right_is_num = right.isdigit()
+            
+    #         if operator == '==':
+    #             return f'(({left} == {right}) && (!({left} != {right})))'
+    #         elif operator == '!=':
+    #             return f'(({left} != {right}) && (!({left} == {right})))'
+    #         elif operator == '>':
+    #             if left_is_num and right_is_num:
+    #                 return f'(({left} > {right}) && ({left} >= {int(right) + 1}))'
+    #             else:
+    #                 return f'(({left} > {right}) && (!({left} <= {right})))'
+    #         elif operator == '<':
+    #             if left_is_num and right_is_num:
+    #                 return f'(({left} < {right}) && ({left} <= {int(right) - 1}))'
+    #             else:
+    #                 return f'(({left} < {right}) && (!({left} >= {right})))'
+    #         elif operator == '>=':
+    #             return f'(({left} >= {right}) && (({left} > {right}) || ({left} == {right})))'
+    #         elif operator == '<=':
+    #             return f'(({left} <= {right}) && (({left} < {right}) || ({left} == {right})))'
+            
+    #         return match.group(0)
+        
+    #     # 先替换true/false
+    #     code = code.replace('true', '(true || false) && true')
+    #     code = code.replace('false', '(true && false) || false')
+    #     code = code.replace('== true', '!= false')
+    #     code = code.replace('== false', '!= true')
+        
+    #     # 使用更安全的模式匹配
+    #     comparison_pattern = r'(\b\w+\b)\s*(==|!=|>|<|>=|<=)\s*(\b\w+\b)'
+    #     code = re.sub(comparison_pattern, safe_replace_boolean, code)
+        
+    #     return code
+
     def split_boolean_expressions(self, code):
-        """
-        拆分布尔表达式，避免类型错误
-        """
-        def safe_replace_boolean(match):
-            """
-            安全地替换布尔表达式，避免类型冲突
-            """
-            left, operator, right = match.groups()
-            
-            # 检查是否是数值比较
-            left_is_num = left.isdigit()
-            right_is_num = right.isdigit()
-            
-            if operator == '==':
-                return f'(({left} == {right}) && (!({left} != {right})))'
-            elif operator == '!=':
-                return f'(({left} != {right}) && (!({left} == {right})))'
-            elif operator == '>':
-                if left_is_num and right_is_num:
-                    return f'(({left} > {right}) && ({left} >= {int(right) + 1}))'
-                else:
-                    return f'(({left} > {right}) && (!({left} <= {right})))'
-            elif operator == '<':
-                if left_is_num and right_is_num:
-                    return f'(({left} < {right}) && ({left} <= {int(right) - 1}))'
-                else:
-                    return f'(({left} < {right}) && (!({left} >= {right})))'
-            elif operator == '>=':
-                return f'(({left} >= {right}) && (({left} > {right}) || ({left} == {right})))'
-            elif operator == '<=':
-                return f'(({left} <= {right}) && (({left} < {right}) || ({left} == {right})))'
-            
-            return match.group(0)
-        
-        # 先替换true/false
-        code = code.replace('true', '(true || false) && true')
-        code = code.replace('false', '(true && false) || false')
-        code = code.replace('== true', '!= false')
-        code = code.replace('== false', '!= true')
-        
-        # 使用更安全的模式匹配
-        comparison_pattern = r'(\b\w+\b)\s*(==|!=|>|<|>=|<=)\s*(\b\w+\b)'
-        code = re.sub(comparison_pattern, safe_replace_boolean, code)
-        
-        return code
+        with open("contract_b.sol", "w", encoding="utf-8") as f:
+            f.write(code)
+        ast = generate_ast_from_file("contract_b.sol")
+        with open("contract_b_ast.json", "w") as f:
+            json.dump(ast, f, indent=2)
+        with open("contract_b.sol", "r", encoding="utf-8") as f:
+            solidity_code = f.read()
+
+    # 读取 AST 文件（假设已经生成）
+        with open("contract_b_ast.json", "r", encoding="utf-8") as f:
+            ast_data = json.load(f)
+
+    # 创建分割器实例
+        splitter = SplitBooleanVariables(solidity_code, ast_data)
+
+    # 应用布尔变量分割
+        obfuscated_code = splitter.apply_boolean_splitting(probability=0.8)
+        return obfuscated_code
     
     def scalar_to_struct(self, code):
         """

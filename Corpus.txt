@@ -1,0 +1,5 @@
+{
+ "variableNaming": [
+	"BiAnIsACodeObfuscationToolForSoliditySmartContracts", "JiuZhouIsADataSetOfEthereumBugSmartContracts", "SolidityCheckIsAStaticCodeProblemDetectionToolBasedOnRegularExpressionsAndProgramInstrumentationWhichIsDevelopedForEthereumSmartContracts"
+ ],
+}

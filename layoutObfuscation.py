@@ -180,7 +180,17 @@ class layoutObfuscation:
         return code
 
     def minify_code(self, code: str) -> str:
-        code = "".join(line.strip() for line in code.splitlines())
+        string_pattern = r'(".*?"|\'.*?\')'
+        strings = []
+        
+        def replace_string(match):
+           strings.append(match.group(0))
+           return f'__STRING_{len(strings)-1}__'
+
+        code_replaced_string = re.sub(string_pattern, replace_string, code)
+        code_replaced_string = re.sub(r'/\*.*?\*/', '', code_replaced_string, flags=re.DOTALL)
+
+        code_replaced_string = "".join(line.strip() for line in code_replaced_string.splitlines())
 
         result_chars: List[str] = []
         prev_char = ""
@@ -188,7 +198,7 @@ class layoutObfuscation:
 
         separators = set("{}();,=:+-*/<>!&|[]")
 
-        for ch in code:
+        for ch in code_replaced_string:
             if ch.isspace():
                 space_pending = True
                 continue
@@ -202,7 +212,12 @@ class layoutObfuscation:
             result_chars.append(ch)
             prev_char = ch
 
-        return "".join(result_chars).strip()
+        result = "".join(result_chars).strip()
+
+        for i, string in enumerate(strings):
+            result = result.replace(f'__STRING_{i}__', string)
+
+        return result
     
     def run(self, config: layoutConfig):
         """

@@ -183,7 +183,7 @@ class dataflowObfuscation:
             # 位运算
             lambda v: f"(({v} << {r_int_2}) >> {r_int_2})",
             # 混合运算
-            lambda v: f"(({v} // {r_int_3} * {r_int_3}) + {v % r_int_3})"
+            lambda v: f"(({v} / {r_int_3} * {r_int_3}) + {v % r_int_3})"
         ]
         
         strategy = random.choice(strategies)

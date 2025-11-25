@@ -4,7 +4,7 @@ from tkinter import filedialog, messagebox
 import re
 
 from utilities import config
-from utilities.metrics import calculate_cyclomatic_complexity, calculate_halstead_metrics, calculate_maintainability_index
+from utilities.metrics import calculate_complexity
 import layoutObfuscation
 import dataflowObfuscation
 import controlflowObfuscation
@@ -542,9 +542,14 @@ class ObfuscationApp:
 
     def measure_complexity(self):
         filename = self.input_path_var.get().strip()
+        output_name = self.output_name_var.get().strip()
+        output_dir = self.output_dir_var.get().strip()
+        obfuscated_filename = os.path.join(output_dir, output_name)
         try:
             with open(filename, "r", encoding="utf-8") as f:
                 sol_content = f.read()
+            with open(obfuscated_filename, "r", encoding="utf-8") as f:
+                obfuscated_content = f.read()
         except Exception as e:
             messagebox.showerror("Error", f"Failed to read input file:\n{e}")
             return
@@ -559,7 +564,8 @@ class ObfuscationApp:
         
         try:
             with open(output_path, "w", encoding="utf-8") as f:
-                f.write(str(calculate_maintainability_index(sol_content)))
+                report_content = "Before obfuscate\n" + calculate_complexity(sol_content) + "\n" + "After obfuscated:\n" + calculate_complexity(obfuscated_content)
+                f.write(report_content)
             messagebox.showinfo(
                 "Success",
                 f"Measure completed.\nOutput saved to:\n{output_path}",

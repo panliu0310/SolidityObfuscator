@@ -1,19 +1,19 @@
 {
-    "inputPath": "",
-    "outputName": "",
-    "outputDir": "",
+    "inputPath": "C:/Users/Bryan/OneDrive - HKUST Connect/CSIT5730 (L1) - Principles of Cybersecurity/project/SolidityObfuscator/testCase/FirstApp.sol",
+    "outputName": "FirstApp_obfu.sol",
+    "outputDir": "C:/Users/Bryan/OneDrive - HKUST Connect/CSIT5730 (L1) - Principles of Cybersecurity/project/SolidityObfuscator/testCase",
     "obfuscationType": [
         {
             "controlflow": true
         },
         {
-            "dataflow": true
+            "dataflow": false
         },
         {
-            "layout": false
+            "layout": true
         },
         {
-            "deadcode": false
+            "deadcode": true
         }
     ],
     "layoutConfig": [
@@ -21,16 +21,16 @@
             "removeComments": false
         },
         {
-            "obfuscateVariables": false
+            "obfuscateVariables": true
         },
         {
-            "obfuscateMappings": false
+            "obfuscateMappings": true
         },
         {
-            "obfuscateVectors": false
+            "obfuscateVectors": true
         },
         {
-            "obfuscateFunctions": false
+            "obfuscateFunctions": true
         },
         {
             "minifyCode": false
@@ -52,13 +52,13 @@
             "promoteLocalToGlobal": true
         },
         {
-            "constantsToDynamicArrays": false
+            "constantsToDynamicArrays": true
         },
         {
             "splitBooleanExpressions": true
         },
         {
-            "constantsToArithmetic": false
+            "constantsToArithmetic": true
         }
     ],
     "controlflowConfig": [

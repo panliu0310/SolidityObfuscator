@@ -4,6 +4,7 @@ from tkinter import filedialog, messagebox
 import re
 
 from utilities import config
+from utilities.metrics import calculate_cyclomatic_complexity, calculate_halstead_metrics, calculate_maintainability_index
 import layoutObfuscation
 import dataflowObfuscation
 import controlflowObfuscation
@@ -165,6 +166,15 @@ class ObfuscationApp:
             width=20,
         )
         btn_start.grid(row=8, column=0, columnspan=2, pady=(15, 0))
+
+        # 6. Measure complexity
+        btn_start = tk.Button(
+            frame,
+            text="Measure complexity",
+            command=self.measure_complexity,
+            width=20,
+        )
+        btn_start.grid(row=9, column=0, columnspan=2, pady=(15, 0))
 
     # configuration
     def apply_config(self):
@@ -530,6 +540,32 @@ class ObfuscationApp:
         except Exception as e:
             messagebox.showerror("Error", f"Obfuscation failed:\n{e}")
 
+    def measure_complexity(self):
+        filename = self.input_path_var.get().strip()
+        try:
+            with open(filename, "r", encoding="utf-8") as f:
+                sol_content = f.read()
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to read input file:\n{e}")
+            return
+        
+        name, ext = os.path.splitext(filename)
+
+        ext = ".txt"
+
+        out_name = f"{name}_measure{ext}"
+        
+        output_path = os.path.join(self.output_dir_var.get().strip(), out_name)
+        
+        try:
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(str(calculate_maintainability_index(sol_content)))
+            messagebox.showinfo(
+                "Success",
+                f"Measure completed.\nOutput saved to:\n{output_path}",
+            )
+        except Exception as e:
+            messagebox.showerror("Error", f"Measure complexity failed:\n{e}")
 
 def main():
     root = tk.Tk()

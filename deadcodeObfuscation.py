@@ -65,16 +65,6 @@ class deadcodeObfuscation:
 
     @staticmethod
     def _function_matches(code: str) -> List[re.Match]:
-        """
-        Find all function-like definitions with bodies:
-
-          function foo(...) ... { ... }
-          constructor() ... { ... }
-          fallback() external payable { ... }
-          receive() external payable { ... }
-
-        group(2) is the function name if it exists (only for 'function name(...)').
-        """
         pattern = re.compile(
             r"""
             \b(

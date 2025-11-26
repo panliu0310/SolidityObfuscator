@@ -96,20 +96,14 @@ class controlflowObfuscation:
 
     #  Opaque true helper insertion
     @staticmethod
-    def _find_first_contract_index(code: str) -> int:
-        return code.find("contract ")
+    def _has_opaque_true_helper(code: str) -> bool:
+        return "function opaqueTrue(" in code
 
     def insert_opaque_true_helper(self, code: str) -> str:
-        if "function opaqueTrue(" in code:
+        if self._has_opaque_true_helper(code):
             return code
 
-        contract_idx = self._find_first_contract_index(code)
-        if contract_idx == -1:
-            return code
-
-        brace_open = code.find("{", contract_idx)
-        if brace_open == -1:
-            return code
+        pattern = re.compile(r"(contract\s+[A-Za-z_]\w*\s*[^{]*\{)", flags=re.MULTILINE)
 
         helper = """
     function opaqueTrue() private pure returns (bool) {
@@ -121,64 +115,65 @@ class controlflowObfuscation:
     }
 """
 
-        return code[: brace_open + 1] + helper + code[brace_open + 1 :]
+        def _insert_helper(m: re.Match) -> str:
+            # m.group(1) already includes the "{"
+            return m.group(1) + helper
 
-    #  Insert opaqueTrue into if conditions
+        new_code, count = pattern.subn(_insert_helper, code, count=1)
+        return new_code if count > 0 else code
+
     def insert_opaque_true_in_if(self, code: str) -> str:
+        if_pattern = re.compile(r"\bif\b", flags=re.MULTILINE)
+
         result: List[str] = []
-        i = 0
+        last_index = 0
         n = len(code)
 
-        while i < n:
-            c = code[i]
+        for m in if_pattern.finditer(code):
+            start_if = m.start()
 
-            # Detect standalone "if" 
-            if c == "i" and i + 1 < n and code[i + 1] == "f":
-                prev = code[i - 1] if i > 0 else " "
-                nxt = code[i + 2] if i + 2 < n else " "
-                if not (prev.isalnum() or prev == "_") and not (nxt.isalnum() or nxt == "_"):
-                    # We found an if
-                    result.append("if")
-                    i += 2
+            result.append(code[last_index:start_if])
 
-                    while i < n and code[i].isspace():
-                        result.append(code[i])
-                        i += 1
+            i = start_if
+            result.append("if")
+            i += 2  
 
-                    # Expecting '('
-                    if i < n and code[i] == "(":
-                        start_paren = i
-                        depth = 0
-                        j = i
-                        while j < n:
-                            if code[j] == "(":
-                                depth += 1
-                            elif code[j] == ")":
-                                depth -= 1
-                                if depth == 0:
-                                    break
-                            j += 1
-                        if j >= n:
-                            result.append(code[i:])
-                            break
+            while i < n and code[i].isspace():
+                result.append(code[i])
+                i += 1
 
-                        condition = code[start_paren + 1 : j]
-                        new_cond = f"(({condition}) && opaqueTrue())"
-                        result.append("(")
-                        result.append(new_cond)
-                        result.append(")")
-                        i = j + 1
-                        continue
-                    else:
-                        continue
-                else:
-                    result.append(c)
-                    i += 1
-                    continue
-            # default: copy char
-            result.append(c)
-            i += 1
+            if i >= n or code[i] != "(":
+                result.append(code[start_if + 2:i])
+                last_index = i
+                continue
 
+            start_paren = i
+            depth = 0
+            j = i
+            while j < n:
+                if code[j] == "(":
+                    depth += 1
+                elif code[j] == ")":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                j += 1
+
+            if j >= n:
+                result.append(code[start_if:j])
+                last_index = j
+                continue
+
+            condition = code[start_paren + 1: j]
+            new_cond = f"(({condition}) && opaqueTrue())"
+
+            result.append("(")
+            result.append(new_cond)
+            result.append(")")
+
+            last_index = j + 1
+
+        result.append(code[last_index:])
         return "".join(result)
 
     #  Shuffle code blocks 
@@ -236,9 +231,11 @@ class controlflowObfuscation:
         return blocks
 
     def shuffle_code_blocks(self, code: str) -> str:
-        contract_idx = self._find_first_contract_index(code)
-        if contract_idx == -1:
+        m_contract = re.search(r"\bcontract\b", code)
+        if not m_contract:
             return code
+
+        contract_idx = m_contract.start()
 
         header = code[:contract_idx]
         brace_open = code.find("{", contract_idx)
@@ -247,8 +244,8 @@ class controlflowObfuscation:
 
         contract_header = code[contract_idx: brace_open + 1]
         brace_close = self._find_matching_brace(code, brace_open)
-        body = code[brace_open + 1 : brace_close]
-        tail = code[brace_close + 1 :]
+        body = code[brace_open + 1: brace_close]
+        tail = code[brace_close + 1:]
 
         blocks = self._split_top_level_blocks(body)
 

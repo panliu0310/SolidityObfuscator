@@ -481,6 +481,18 @@ class ObfuscationApp:
             # Remove the pragma statement from the code
             sol_content = re.sub(pragma_pattern, '', sol_content)
 
+            # Data flow
+            if self.dataflow_var.get():
+                dfoCfg = dataflowObfuscation.dataflowConfig(
+                    self.dataflow_config_scalar_to_struct_var.get(),
+                    self.dataflow_config_promote_local_to_global_var.get(),
+                    self.dataflow_config_constants_to_dynamic_arrays_var.get(),
+                    self.dataflow_config_split_boolean_expressions_var.get(),
+                    self.dataflow_config_constants_to_arithmetic_var.get()
+                )
+                dfo = dataflowObfuscation.dataflowObfuscation(sol_content)
+                sol_content = dfo.obfuscate(dfoCfg)
+
             # Control flow
             if self.controlflow_var.get():
                 cfoCfg = controlflowObfuscation.controlflowConfig(
@@ -501,18 +513,6 @@ class ObfuscationApp:
                 dco = deadcodeObfuscation.deadcodeObfuscation(sol_content)
                 sol_content = dco.run(dcCfg)
                 pass
-
-            # Data flow
-            if self.dataflow_var.get():
-                dfoCfg = dataflowObfuscation.dataflowConfig(
-                    self.dataflow_config_scalar_to_struct_var.get(),
-                    self.dataflow_config_promote_local_to_global_var.get(),
-                    self.dataflow_config_constants_to_dynamic_arrays_var.get(),
-                    self.dataflow_config_split_boolean_expressions_var.get(),
-                    self.dataflow_config_constants_to_arithmetic_var.get()
-                )
-                dfo = dataflowObfuscation.dataflowObfuscation(sol_content)
-                sol_content = dfo.obfuscate(dfoCfg)
 
             # Layout
             if self.layout_var.get():

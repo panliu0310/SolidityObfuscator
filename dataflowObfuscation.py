@@ -160,7 +160,7 @@ class dataflowObfuscation:
         converter = LocalToGlobalConverter(solidity_code, ast_data)
 
     # Convert local variables to global (80% probability)
-        obfuscated_code, global_vars = converter.convert_local_to_global(0.8)
+        obfuscated_code, global_vars = converter.convert_local_to_global(1)
         return obfuscated_code
     
     def create_complex_arithmetic(self, value):
@@ -506,7 +506,7 @@ class dataflowObfuscation:
         splitter = SplitBooleanVariables(solidity_code, ast_data)
 
     # 应用布尔变量分割
-        obfuscated_code = splitter.apply_boolean_splitting(probability=0.8)
+        obfuscated_code = splitter.apply_boolean_splitting(probability=1)
         return obfuscated_code
     
     def scalar_to_struct(self, code):
@@ -552,15 +552,15 @@ class dataflowObfuscation:
         print("开始数据流混淆...")
         code = self.code
         
-        # 1. 标量变量转为结构体
-        if config.scalar_to_struct_config:
-            print("将标量变量转为结构体...")
-            code = self.scalar_to_struct(code)
-        
-        # 2. 局部变量提升为全局变量
+        # 1. 局部变量提升为全局变量
         if config.promote_local_to_global_config:
             print("提升局部变量为全局变量...")
             code = self.promote_local_to_global(code)
+
+        # 2. 标量变量转为结构体
+        if config.scalar_to_struct_config:
+            print("将标量变量转为结构体...")
+            code = self.scalar_to_struct(code)
         
         # 3. 常量转换为动态数据
         if config.constants_to_dynamic_arrays_config:

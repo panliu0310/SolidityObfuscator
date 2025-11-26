@@ -182,73 +182,80 @@ class LocalToGlobalConverter:
             if item[1] == start_pos and item[2] == end_pos:
                 return item[0]
         return ""
+    
+
+    def find_decl_statement_for_var(self, var):
+        var_id = var["id"]
+        queue = [self.ast]
+        while queue:
+            node = queue.pop()
+            if isinstance(node, dict):
+                if node.get("nodeType") == "VariableDeclarationStatement":
+                    for decl in node.get("declarations", []):
+                        if decl and decl.get("id") == var_id:
+                            return node
+                for v in node.values():
+                    if isinstance(v, dict) or isinstance(v, list):
+                        queue.append(v)
+            elif isinstance(node, list):
+                for item in node:
+                    if isinstance(item, dict) or isinstance(item, list):
+                        queue.append(item)
+        return None
+
 
     def filter_convertible_variables(self, local_vars):
-        """Filter variables that can be converted to global"""
         filtered = []
+        self.var_to_stmt = {}
 
         for var in local_vars:
-            # Skip variables without names
             if not var.get("name"):
                 continue
-
-            # Skip variables with specific storage locations
             if var.get("storageLocation") != "default":
                 continue
 
+            stmt = self.find_decl_statement_for_var(var)
+            if stmt is None:
+                continue
+
             filtered.append(var)
+            self.var_to_stmt[var["id"]] = stmt
+
         return filtered
 
 
+
     def create_global_declarations(self, variables):
-        """Create global variable declaration statements"""
         declarations = ""
 
         for var in variables:
-            print(var)
-            start_pos, end_pos = self.src_to_position(var["src"])
-            print(start_pos, end_pos)
+            stmt = self.var_to_stmt.get(var["id"])
+            if stmt is None:
+                start_pos, end_pos = self.src_to_position(var["src"])
+            else:
+                start_pos, end_pos = self.src_to_position(stmt["src"])
 
-            # Extract the variable declaration
             declaration = self.source_code[start_pos:end_pos]
-            # Find the complete declaration (until semicolon)
-            semicolon_pos = end_pos
-            while semicolon_pos < len(self.source_code) and self.source_code[semicolon_pos] != ';':
-                semicolon_pos += 1
-
-            if semicolon_pos < len(self.source_code):
-                declaration += self.source_code[end_pos:semicolon_pos + 1]
-
-            declarations += "\t" + declaration + "\n"
-            print(declaration, "111")
-
+            declarations += "\t" + declaration + ";\n"
 
         return declarations
 
+
     def remove_local_declarations(self, content, variables):
-        """
-        Step 7: Overwrite declare_state - Remove original local declarations
-        """
         modified_content = content
 
         for var in variables:
-            try:
-                start_pos, end_pos = self.src_to_position(var["src"])
-
-                # Find the end of declaration (semicolon)
-                while end_pos < len(modified_content) and modified_content[end_pos] != ';':
-                    end_pos += 1
-                if end_pos < len(modified_content):
-                    end_pos += 1  # Include the semicolon
-
-                # Replace with spaces to maintain source positions
-                spaces = " " * (end_pos - start_pos)
-                modified_content = modified_content[:start_pos] + spaces + modified_content[end_pos:]
-
-            except Exception as e:
+            stmt = self.var_to_stmt.get(var["id"])
+            if stmt is None:
                 continue
 
+            start_pos, end_pos = self.src_to_position(stmt["src"])
+
+            spaces = " " * (end_pos - start_pos)
+            modified_content = modified_content[:start_pos] + spaces + modified_content[end_pos+1:]
+
         return modified_content
+
 
     def insert_global_declarations(self, content, declarations):
         """Insert global declarations at the beginning of contract"""

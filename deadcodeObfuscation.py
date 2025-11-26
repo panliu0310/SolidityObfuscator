@@ -51,12 +51,7 @@ class deadcodeObfuscation:
 
         helper = """
     function __dcOpaqueFalse() private pure returns (bool) {
-        uint256 x;
-        assembly {
-            let a := 1
-            let b := 1
-            x := sub(a, b)
-        }
+        uint256 x = 0;
         return (x > 1);
     }
 """

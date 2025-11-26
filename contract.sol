@@ -1,27 +1,17 @@
 // SPDX-License-Identifier: MIT
 
 
-contract Counter {
-    struct DataStruct_1 {
-        uint256 count;
-    }
-    DataStruct_1 private dataStruct;
+contract Variables {
+    // State variables are stored on the blockchain.
+    string public text = "Hello";
+    uint256 public num = 123;
 
-    uint256 public _deprecated_count;
+    function doSomething() public view {
+        // Local variables are not saved to the blockchain.
+        uint256 i = 456;
 
-    // Function to get the current dataStruct.count
-    function get() public view returns (uint256) {
-        return _deprecated_count;
-    }
-
-    // Function to increment dataStruct.count by 1
-    function inc() public {
-        dataStruct.count += 1;
-    }
-
-    // Function to decrement dataStruct.count by 1
-    function dec() public {
-        // This function will fail if dataStruct.count = 0
-        dataStruct.count -= 1;
+        // Here are some global variables
+        uint256 timestamp = block.timestamp; // Current block timestamp
+        address sender = msg.sender; // address of the caller
     }
 }

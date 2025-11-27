@@ -1,5 +1,6 @@
 from typing import List
 import re
+import random
 
 class controlflowConfig:
     instruction_insert_config: bool
@@ -249,8 +250,17 @@ class controlflowObfuscation:
 
         blocks = self._split_top_level_blocks(body)
 
-        if len(blocks) > 1:
-            blocks = blocks[1:] + blocks[:1]
+        state_blocks = []
+        function_blocks = []
+
+        for block in blocks:
+            if re.match(r"\s*function\b", block):
+                function_blocks.append(block)
+            else:
+                state_blocks.append(block)
+
+        if len(function_blocks) > 1:
+            random.shuffle(function_blocks)
 
         new_body = "".join(blocks)
         return header + contract_header + new_body + "}" + tail

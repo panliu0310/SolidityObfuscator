@@ -4,16 +4,16 @@
     "outputDir": "C:/Users/Bryan/OneDrive - HKUST Connect/CSIT5730 (L1) - Principles of Cybersecurity/project/SolidityObfuscator/testCase",
     "obfuscationType": [
         {
-            "controlflow": false
+            "controlflow": true
         },
         {
             "dataflow": true
         },
         {
-            "layout": false
+            "layout": true
         },
         {
-            "deadcode": false
+            "deadcode": true
         }
     ],
     "layoutConfig": [
@@ -33,7 +33,7 @@
             "obfuscateFunctions": true
         },
         {
-            "minifyCode": true
+            "minifyCode": false
         }
     ],
     "deadcodeConfig": [
@@ -46,7 +46,7 @@
     ],
     "dataflowConfig": [
         {
-            "scalarToStruct": false
+            "scalarToStruct": true
         },
         {
             "promoteLocalToGlobal": true
@@ -55,10 +55,10 @@
             "constantsToDynamicArrays": false
         },
         {
-            "splitBooleanExpressions": false
+            "splitBooleanExpressions": true
         },
         {
-            "constantsToArithmetic": false
+            "constantsToArithmetic": true
         }
     ],
     "controlflowConfig": [

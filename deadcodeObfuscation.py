@@ -49,10 +49,26 @@ class deadcodeObfuscation:
         if brace_open == -1:
             return code
 
+#         helper = """
+#     function __dcOpaqueFalse() private pure returns (bool) {
+#         uint256 x = 0;
+#         return (x > 1);
+#     }
+# """
         helper = """
     function __dcOpaqueFalse() private pure returns (bool) {
-        uint256 x = 0;
-        return (x > 1);
+        uint256 seed = 0x12345678;
+        uint256 acc = 0;
+
+        for (uint256 i = 0; i < 5; i++) {
+            seed = uint256(keccak256(abi.encodePacked(seed, i)));
+            acc ^= (seed & ((1 << (i + 1)) - 1));
+        }
+
+        uint256 evenCheck = acc % 2;
+        uint256 oddCheck = acc % 2;
+
+        return (evenCheck == 0 && oddCheck == 1);
     }
 """
 
